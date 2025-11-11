@@ -1,0 +1,163 @@
+body {
+  font-family: Arial, sans-serif;
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  background-color: #f6f7fb;
+  align-items: flex-start;
+  height: 100vh;
+  box-sizing: border-box;
+}
+
+#toolbar {
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#toolbar button {
+  padding: 10px;
+  border: none;
+  background: #3a86ff;
+  color: #fff;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+#toolbar button:hover {
+  background: #265df2;
+}
+
+/* Folha A4 */
+#reportCanvas {
+  position: relative;
+  width: 210mm;          /* A4 */
+  height: 297mm;         /* A4 */
+  max-width: 100%;
+  background: #fff;
+  overflow: hidden;
+  box-shadow: 0 0 0.5rem rgba(0,0,0,0.2);
+  touch-action: none;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header (fixo) */
+#reportHeader {
+  position: relative;
+  height: 40mm;
+  padding: 6mm;
+  box-sizing: border-box;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(90deg, #f8fafc 0%, #ffffff 100%);
+  box-shadow: inset 0 -1px rgba(0,0,0,0.03);
+}
+
+/* Container para itens do cabeçalho */
+.header-element {
+  position: relative;
+  user-select: none;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #222;
+}
+
+/* Logo no cabeçalho (pode inserir imagem ou texto) */
+#headerLogo {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eceff6;
+  color: #1f2937;
+  font-weight: 700;
+  border-radius: 6px;
+  box-shadow: 0 1px 2px rgba(16,24,40,0.04);
+  font-size: 12pt;
+}
+
+/* Título do relatório */
+#headerTitle {
+  font-size: 14pt;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: 0.2px;
+}
+
+/* Content (área editável) */
+#reportContent {
+  position: relative;
+  flex: 1 1 auto;
+  overflow: hidden;   /* impede visualmente elementos saírem */
+  padding: 8mm;
+  box-sizing: border-box;
+  background: transparent;
+}
+
+/* Footer (fixo) */
+#reportFooter {
+  position: relative;
+  height: 18mm;
+  padding: 4mm;
+  box-sizing: border-box;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfbfb 100%);
+  color: #6b7280;
+  font-size: 9pt;
+}
+
+/* Itens do rodapé */
+.footer-element {
+  position: relative;
+  user-select: none;
+  pointer-events: auto;
+  font-size: 9pt;
+  color: #6b7280;
+}
+
+/* Número de página estilizado */
+#footerPage {
+  font-weight: 600;
+  opacity: 0.9;
+}
+
+/* elementos fixos de header/footer (não são arrastáveis) */
+.header-element,
+.footer-element {
+  position: relative;
+  user-select: none;
+  pointer-events: auto;
+  font-size: 12pt;
+}
+
+/* elementos móveis (apenas dentro do #reportContent) */
+.elemento {
+  position: absolute;
+  cursor: move;
+  user-select: text;
+  -webkit-user-select: text;
+  box-sizing: border-box;
+  padding: 2px 4px;
+  background: transparent;
+  border: 1px dashed transparent;
+}
+.elemento:focus {
+  outline: none;
+  border-color: rgba(0,0,0,0.15);
+}
+.elemento[contenteditable="true"] {
+  outline: none;
+}
