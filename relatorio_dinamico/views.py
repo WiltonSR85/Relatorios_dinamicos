@@ -7,8 +7,8 @@ from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_POST
 from django.templatetags.static import static
 from django.utils.html import escape
-from weasyprint import HTML
 from django.shortcuts import render
+from django.template.loader import render_to_string
 
 logger = logging.getLogger(__name__)
 
@@ -35,54 +35,33 @@ def gerar_pdf(request):
 
     css_url = request.build_absolute_uri(static('editor.css'))
 
-    header_html = (
-        '<div id="reportHeader" aria-label="Cabeçalho">'
-        '<div class="header-element" id="headerLogo">LOGO</div>'
-        '<div class="header-element" id="headerTitle">Serviço de Atendimento - Relatório</div>'
-        '</div>'
-    )
-    footer_html = (
-        '<div id="reportFooter" aria-label="Rodapé">'
-        '<div class="footer-element" id="footerText">Rodapé padrão - contato: (xx) xxxx-xxxx</div>'
-        '<div class="footer-element" id="footerPage">Página 1</div>'
-        '</div>'
-    )
+    # dados simples para header/footer (sem HTML na view)
+    header_logo = 'LOGO'
+    header_title = 'Serviço de Atendimento - Relatório'
+    footer_text = 'Rodapé padrão - contato: (xx) xxxx-xxxx'
+    footer_page = 'Página 1'
 
+    # passa apenas os elementos como dados (x, y, content) — sem gerar HTML na view
     content_items = []
     for el in elements:
         x = int(el.get('x', 0))
         y = int(el.get('y', 0))
         content = escape(el.get('content', ''))
-        content_items.append(f'<div class="elemento" style="position:absolute; left:{x}px; top:{y}px">{content}</div>')
+        content_items.append({'x': x, 'y': y, 'content': content})
 
-    content_html = (
-        f'<div id="reportContent" aria-label="Conteúdo editável" style="position:relative; width:{page_w}px; height:{max(0, page_h - 1)}px;">'
-        + ''.join(content_items) +
-        '</div>'
-    )
+    context = {
+        'css_url': css_url,
+        'header_logo': header_logo,
+        'header_title': header_title,
+        'footer_text': footer_text,
+        'footer_page': footer_page,
+        'content_items': content_items,
+        'page_w': page_w,
+        'page_h': page_h,
+    }
 
-    # monta html para o PDF (com overrides para remover margens e toolbar)
-    page_style = (
-        '<style>'
-        '@page { size: A4; margin: 0; }'
-        'html, body { margin: 0 !important; padding: 0 !important; background: transparent !important; }'
-        '#toolbar { display: none !important; }'
-        '#reportCanvas { margin: 0 !important; padding: 0 !important; box-shadow: none !important; }'
-        '#reportHeader, #reportFooter { box-shadow: none !important; }'
-        '</style>'
-    )
-
-    html = (
-        '<!doctype html><html><head>'
-        '<meta charset="utf-8">'
-        f'<link rel="stylesheet" href="{css_url}">'
-        + page_style +
-        '</head><body>'
-        f'<div id="reportCanvas" style="width:{page_w}px; height:{page_h}px; position:relative;">'
-        f'{header_html}{content_html}{footer_html}'
-        '</div>'
-        '</body></html>'
-    )
+    # renderiza o HTML a partir do template (todo o markup fica no template)
+    html = render_to_string('pdf_template.html', context)
 
     try:
         pdf = HTML(string=html, base_url=request.build_absolute_uri('/')).write_pdf()

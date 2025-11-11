@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="{{ css_url }}">
+  <style>
+    @page { size: A4; margin: 0; }
+    html, body { margin: 0 !important; padding: 0 !important; background: transparent !important; }
+    #toolbar { display: none !important; }
+    #reportCanvas { margin: 0 !important; padding: 0 !important; box-shadow: none !important; }
+    #reportHeader, #reportFooter { box-shadow: none !important; }
+  </style>
+</head>
+<body>
+  <div id="reportCanvas" style="width:{{ page_w }}px; height:{{ page_h }}px; position:relative;">
+    <div id="reportHeader" aria-label="Cabeçalho">
+      <div class="header-element" id="headerLogo">{{ header_logo }}</div>
+      <div class="header-element" id="headerTitle">{{ header_title }}</div>
+    </div>
+
+    <div id="reportContent" aria-label="Conteúdo editável" style="position:relative; width:{{ page_w }}px; height:{{ page_h }}px;">
+      {% for item in content_items %}
+        <div class="elemento" style="position:absolute; left:{{ item.x }}px; top:{{ item.y }}px;">{{ item.content }}</div>
+      {% endfor %}
+    </div>
+
+    <div id="reportFooter" aria-label="Rodapé">
+      <div class="footer-element" id="footerText">{{ footer_text }}</div>
+      <div class="footer-element" id="footerPage">{{ footer_page }}</div>
+    </div>
+  </div>
+</body>
+</html>
