@@ -141,34 +141,21 @@ function makeDraggable(el) {
 document.addEventListener('DOMContentLoaded', () => {
   const parent = document.getElementById('reportContent');
   if (!parent) return;
-  // Garante header/footer com elementos padrão (se não existirem)
-  const header = document.getElementById('reportHeader');
-  if (header && !document.getElementById('headerTitle')) {
-    const t = document.createElement('div');
-    t.className = 'header-element';
-    t.id = 'headerTitle';
-    t.innerText = 'Serviço de Atendimento - Relatório';
-    header.appendChild(t);
-  }
-  if (header && !document.getElementById('headerLogo')) {
-    const l = document.createElement('div');
-    l.className = 'header-element';
-    l.id = 'headerLogo';
-    l.innerText = 'LOGO';
-    header.insertBefore(l, header.firstChild);
-  }
+
+  // NÃO criar headerTitle nem headerLogo — o header já está no template com as imagens/título.
+
+  // Garante texto do rodapé se faltar
   const footer = document.getElementById('reportFooter');
   if (footer && !document.getElementById('footerText')) {
     const f = document.createElement('div');
     f.className = 'footer-element';
     f.id = 'footerText';
-    f.innerText = 'Rodapé padrão - contato: (xx) xxxx-xxxx';
-    footer.appendChild(f);
+    f.innerText = '© ' + new Date().getFullYear() + ' - IF Baiano - Campus Guanambi | SAMU 192';
+    footer.insertBefore(f, footer.firstChild);
   }
 
-  // garante que elementos novos fiquem dentro do content (se houver)
+  // aplica makeDraggable em elementos já existentes no content
   Array.from(parent.querySelectorAll('.elemento')).forEach(el => {
-    // garante position absolute e clamp inicial
     el.style.position = 'absolute';
     const pw = parent.clientWidth;
     const ph = parent.clientHeight;
@@ -199,17 +186,18 @@ async function gerarPDF() {
     };
   });
 
-  const csrftoken = getCookie('csrftoken');
+  const csrftoken = getCookie('csrftoken'); // garante que getCookie() exista
 
   const resp = await fetch('/gerar_pdf/', {
     method: 'POST',
+    credentials: 'same-origin',        // garante envio de cookies
     headers: {
       'Content-Type': 'application/json',
-      'X-CSRFToken': csrftoken
+      'X-CSRFToken': csrftoken         // header exigido pelo Django CSRF
     },
     body: JSON.stringify({
       elements: items,
-      page: { width: Math.round(canvasRect.width), height: Math.round(canvasRect.height) } // opcional, útil no backend
+      page: { width: Math.round(canvasRect.width), height: Math.round(canvasRect.height) }
     })
   });
 

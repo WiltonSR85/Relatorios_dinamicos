@@ -69,29 +69,38 @@ body {
   color: #222;
 }
 
-/* Logo no cabeçalho (pode inserir imagem ou texto) */
-#headerLogo {
-  width: 48px;
-  height: 48px;
-  min-width: 48px;
-  min-height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #eceff6;
-  color: #1f2937;
-  font-weight: 700;
-  border-radius: 6px;
-  box-shadow: 0 1px 2px rgba(16,24,40,0.04);
-  font-size: 12pt;
-}
-
 /* Título do relatório */
 #headerTitle {
   font-size: 14pt;
   font-weight: 700;
   color: #111827;
   letter-spacing: 0.2px;
+}
+
+/* Header PDF */
+.header-pdf {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6mm;
+  box-sizing: border-box;
+  height: 40mm;
+  border-bottom: 1px solid #eee;
+  background: linear-gradient(90deg, #f8fafc 0%, #ffffff 100%);
+}
+
+.logo-pdf {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  display: inline-block;
+}
+
+.footer-pdf {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:4mm; box-sizing:border-box; height:18mm; border-top:1px solid #eee;
+  background:linear-gradient(180deg,#fff 0%,#fbfbfb 100%); color:#6b7280; font-size:9pt;
 }
 
 /* Content (área editável) */
@@ -161,3 +170,6 @@ body {
 .elemento[contenteditable="true"] {
   outline: none;
 }
+
+/* mantém compatibilidade visual com regras existentes */
+#reportHeader, #reportFooter { background: transparent; }

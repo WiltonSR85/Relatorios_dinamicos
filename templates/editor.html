@@ -14,17 +14,26 @@
   </div>
 
   <div id="reportCanvas">
-    <div id="reportHeader" aria-label="Cabeçalho">
-      <div class="header-element" id="headerLogo">LOGO</div>
-      <div class="header-element" id="headerTitle">Serviço de Atendimento - Relatório</div>
-    </div>
+    <header id="reportHeader" class="header-pdf" aria-label="Cabeçalho">
+      <div class="logo-group">
+        <img class="logo-pdf" src="{% static 'img/logo-if.png' %}" alt="Logo IF">
+        <img class="logo-pdf" src="{% static 'img/logo-samu192.png' %}" alt="Logo SAMU">
+      </div>
+
+      <h1 id="headerTitle">Serviço de Atendimento - Relatório</h1>
+
+      <div class="logo-group">
+        <img class="logo-pdf" src="{% static 'img/logo-gbi.png' %}" alt="Logo Guanambi">
+        <img class="logo-pdf" src="{% static 'img/logo-sus.png' %}" alt="Logo SUS">
+      </div>
+    </header>
 
     <div id="reportContent" aria-label="Conteúdo editável"></div>
 
-    <div id="reportFooter" aria-label="Rodapé">
-      <div class="footer-element" id="footerText">Rodapé padrão - contato: (xx) xxxx-xxxx</div>
+    <footer id="reportFooter" class="footer-pdf" aria-label="Rodapé">
+      <div class="footer-element" id="footerText">&copy; {% now "Y" %} - IF Baiano - Campus Guanambi | SAMU 192</div>
       <div class="footer-element" id="footerPage">Página 1</div>
-    </div>
+    </footer>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>

@@ -1,3 +1,4 @@
+{% load static %}
 <!doctype html>
 <html>
 <head>
@@ -9,25 +10,51 @@
     #toolbar { display: none !important; }
     #reportCanvas { margin: 0 !important; padding: 0 !important; box-shadow: none !important; }
     #reportHeader, #reportFooter { box-shadow: none !important; }
+    .logo-pdf { width: 48px; height: 48px; object-fit: contain; }
+    .header-pdf { display:flex; align-items:center; justify-content:space-between; padding:6mm; box-sizing:border-box; height:40mm; position:relative; }
+    /* título: não truncar — permitir quebra e centralizar */
+    .header-pdf h1 {
+      position: static;
+      margin: 0;
+      font-size: 14pt;
+      font-weight: 700;
+      text-align: center;
+      flex: 1 1 auto;
+      white-space: normal;
+      overflow: visible;
+      max-width: none;
+      padding: 0 12px;
+    }
+    .footer-pdf { display:flex; justify-content:space-between; align-items:center; padding:4mm; box-sizing:border-box; height:18mm; font-size:9pt; color:#6b7280; }
   </style>
 </head>
 <body>
-  <div id="reportCanvas" style="width:{{ page_w }}px; height:{{ page_h }}px; position:relative;">
-    <div id="reportHeader" aria-label="Cabeçalho">
-      <div class="header-element" id="headerLogo">{{ header_logo }}</div>
-      <div class="header-element" id="headerTitle">{{ header_title }}</div>
-    </div>
+  <div id="reportCanvas">
+    <header id="reportHeader" class="header-pdf" aria-label="Cabeçalho">
+      <div class="logo-group">
+        <img class="logo-pdf" src="{% static 'img/logo-if.png' %}" alt="Logo IF">
+        <img class="logo-pdf" src="{% static 'img/logo-samu192.png' %}" alt="Logo SAMU">
+      </div>
 
-    <div id="reportContent" aria-label="Conteúdo editável" style="position:relative; width:{{ page_w }}px; height:{{ page_h }}px;">
+      <h1>{% if header_title %}{{ header_title }}{% else %}Serviço de Atendimento - Relatório{% endif %}</h1>
+
+      <div class="logo-group">
+        <img class="logo-pdf" src="{% static 'img/logo-gbi.png' %}" alt="Logo Guanambi">
+        <img class="logo-pdf" src="{% static 'img/logo-sus.png' %}" alt="Logo SUS">
+      </div>
+    </header>
+
+    <div id="reportContent" aria-label="Conteúdo editável"
+         style="position:absolute; left:0; right:0; top:40mm; bottom:18mm; padding:8mm; box-sizing:border-box; overflow:visible;">
       {% for item in content_items %}
-        <div class="elemento" style="position:absolute; left:{{ item.x }}px; top:{{ item.y }}px;">{{ item.content }}</div>
+        <div class="elemento" style="position:absolute; left:{{ item.x }}px; top:{{ item.y }}px;">{{ item.content|safe }}</div>
       {% endfor %}
     </div>
 
-    <div id="reportFooter" aria-label="Rodapé">
-      <div class="footer-element" id="footerText">{{ footer_text }}</div>
-      <div class="footer-element" id="footerPage">{{ footer_page }}</div>
-    </div>
+    <footer id="reportFooter" class="footer-pdf" aria-label="Rodapé" style="position:absolute; left:0; right:0; bottom:0; height:18mm;">
+      <div class="footer-element" id="footerText">&copy; {% now "Y" %} - IF Baiano - Campus Guanambi | SAMU 192</div>
+      <div class="footer-element" id="footerPage">Página 1</div>
+    </footer>
   </div>
 </body>
 </html>
