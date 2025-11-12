@@ -49,16 +49,9 @@ docker compose up --build
 
 A aplicação estará disponível em: **http://localhost:8000**
 
-
-### Como funciona
-- O Docker Compose cria um container com a aplicação Django
-- Todas as dependências (Python, WeasyPrint, bibliotecas nativas) são instaladas **dentro do container**
-- Seu computador fica limpo — nenhuma dependência é instalada localmente
-- O código do seu projeto é mapeado em tempo real, então mudanças são refletidas automaticamente
-
 ---
 
-## 📋 Como usar o editor
+## Como usar o editor
 
 1. Abra a aplicação em **http://localhost:8000**
 2. Use os botões para adicionar texto/tabela na área A4
@@ -67,7 +60,7 @@ A aplicação estará disponível em: **http://localhost:8000**
 
 ---
 
-## 5) Como a geração de PDF funciona (visão rápida)
+## Como a geração de PDF funciona (visão rápida)
 
 - O `static/editor.js` coleta a posição (x,y) dos `.elemento` dentro da área do `#reportContent` e envia JSON para `/gerar_pdf/`.
 - A view `relatorio_dinamico.views.gerar_pdf` monta um HTML com header/content/footer e inclui o CSS estático (`editor.css`) usando uma URL absoluta (via `request.build_absolute_uri(static('editor.css'))`) e chama WeasyPrint para renderizar o PDF.
