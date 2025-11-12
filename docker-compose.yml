@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: relatorios_dinamicos_web
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+
+networks:
+  relatorios_network:
+    driver: bridge
