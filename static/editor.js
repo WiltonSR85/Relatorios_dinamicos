@@ -171,6 +171,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
+const navPreview = document.querySelector("#nav-preview");
+
 async function gerarPDF() {
   const canvasRect = document.getElementById('reportCanvas').getBoundingClientRect();
   const contentRect = document.getElementById('reportContent').getBoundingClientRect();
@@ -216,10 +218,18 @@ async function gerarPDF() {
   const ct = resp.headers.get('content-type') || '';
   if (ct.includes('application/pdf')) {
     const blob = await resp.blob();
-    const link = document.createElement('a');
-    link.href = window.URL.createObjectURL(blob);
-    link.download = 'relatorio.pdf';
-    link.click();
+    const preview = document.createElement('object');
+    preview.data = window.URL.createObjectURL(blob);
+    preview.type = "application/pdf";
+    
+    
+    preview.style.height = "297mm";
+    preview.style.width = "210mm";
+    preview.style.maxWidth = "100%";
+    
+    navPreview.innerHTML = "";
+    navPreview.appendChild(preview);
+
   } else {
     const text = await resp.text();
     alert('Resposta inesperada: ' + text.slice(0, 500));

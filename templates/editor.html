@@ -4,38 +4,62 @@
 <head>
   <meta charset="UTF-8">
   <title>Editor de Relatórios</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
   <link rel="stylesheet" href="{% static 'editor.css' %}">
 </head>
 <body>
-  <div id="toolbar">
-    <button onclick="addText()">➕ Adicionar Texto</button>
-    <button onclick="addTable()">📊 Adicionar Tabela</button>
-    <button onclick="gerarPDF()">💾 Gerar PDF</button>
-  </div>
-
-  <div id="reportCanvas">
-    <header id="reportHeader" class="header-pdf" aria-label="Cabeçalho">
-      <div class="logo-group">
-        <img class="logo-pdf" src="{% static 'img/logo-if.png' %}" alt="Logo IF">
-        <img class="logo-pdf" src="{% static 'img/logo-samu192.png' %}" alt="Logo SAMU">
+  <div class="container-fluid pb-5">
+    <div class="row">
+      <div id="toolbar" class="col-md-2 mb-3 mr-1">
+        <h1 class="h4 font-weight-bold">Gerador de relatórios</h1>
+        <button onclick="addText()">➕ Adicionar texto</button>
+        <button onclick="addTable()">📊 Adicionar tabela</button>
       </div>
+      <div class="col-md-2 mr-3 mb-3">
 
-      <h1 id="headerTitle">Serviço de Atendimento - Relatório</h1>
-
-      <div class="logo-group">
-        <img class="logo-pdf" src="{% static 'img/logo-gbi.png' %}" alt="Logo Guanambi">
-        <img class="logo-pdf" src="{% static 'img/logo-sus.png' %}" alt="Logo SUS">
       </div>
-    </header>
+      <div class="col-md-auto" id="reportContainer">
 
-    <div id="reportContent" aria-label="Conteúdo editável"></div>
+        <nav class="">
+          <div class="nav nav-tabs" id="nav-tab" role="tablist">
+            <button class="nav-link active" id="nav-editor-tab" data-toggle="tab" data-target="#nav-editor" type="button" role="tab" aria-controls="nav-editor" aria-selected="true">Edição</button>
+            <button class="nav-link" id="nav-preview-tab" data-toggle="tab" data-target="#nav-preview" type="button" role="tab" aria-controls="nav-preview" aria-selected="false" onclick="gerarPDF()">Pré-visualização</button>
+          </div>
+        </nav>
 
-    <footer id="reportFooter" class="footer-pdf" aria-label="Rodapé">
-      <div class="footer-element" id="footerText">&copy; {% now "Y" %} - IF Baiano - Campus Guanambi | SAMU 192</div>
-      <div class="footer-element" id="footerPage">Página 1</div>
-    </footer>
-  </div>
+        <div class="tab-content" id="nav-tabContent">
+          <!-- Editor-->
+          <div class="tab-pane fade show active" id="nav-editor" role="tabpanel" aria-labelledby="nav-editor-tab">
+            <div id="reportCanvas" class="tab-content">
+              <header id="reportHeader" class="header-pdf" aria-label="Cabeçalho">
+                <div class="logo-group">
+                  <img class="logo-pdf" src="{% static 'img/logo-if.png' %}" alt="Logo IF">
+                  <img class="logo-pdf" src="{% static 'img/logo-samu192.png' %}" alt="Logo SAMU">
+                </div>
+                <h1 id="headerTitle">Serviço de Atendimento - Relatório</h1>
+                <div class="logo-group">
+                  <img class="logo-pdf" src="{% static 'img/logo-gbi.png' %}" alt="Logo Guanambi">
+                  <img class="logo-pdf" src="{% static 'img/logo-sus.png' %}" alt="Logo SUS">
+                </div>
+              </header>
+              <div id="reportContent" aria-label="Conteúdo editável"></div>
+              <footer id="reportFooter" class="footer-pdf" aria-label="Rodapé">
+                <div class="footer-element" id="footerText">&copy; {% now "Y" %} - IF Baiano - Campus Guanambi | SAMU 192</div>
+                <div class="footer-element" id="footerPage">Página 1</div>
+              </footer>
+            </div>
+          </div>
 
+          <!-- Pré-visualização -->
+          <div class="tab-pane fade show active" id="nav-preview" role="tabpanel" aria-labelledby="nav-preview-tab">
+            
+          </div>
+        </div>
+      </div>
+    </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
   <script src="{% static 'editor.js' %}"></script>
 </body>
