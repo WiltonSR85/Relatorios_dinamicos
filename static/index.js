@@ -259,15 +259,21 @@ function atualizarEventosDoPainel() {
     });
 
     const selecionarCorDeTexto = document.getElementById('selecionadorCorDeTexto');
-    selecionarCorDeTexto.addEventListener('change', () => {
+    selecionarCorDeTexto.addEventListener('input', () => {
         const cor = selecionarCorDeTexto.value;
         mudarCorDoTexto(cor);
     });
 
     const selecionadorCorDeFundo = document.getElementById('selecionadorCorDeFundo');
-    selecionadorCorDeFundo.addEventListener('change', () => {
+    selecionadorCorDeFundo.addEventListener('input', () => {
         const cor = selecionadorCorDeFundo.value;
         mudarCorDeFundo(cor);
+    });
+
+    const selecionadorCorDaBorda = document.getElementById('selecionadorCorDaBorda');
+    selecionadorCorDaBorda.addEventListener('input', () => {
+        const cor = selecionadorCorDaBorda.value;
+        mudarCorDaBorda(cor);
     });
 
     const selecionarDeFonte = document.getElementById('selecaoDeFonte');
@@ -286,12 +292,6 @@ function atualizarEventosDoPainel() {
     bordaEspessura.addEventListener('change', () => {
         const espessura = bordaEspessura.value;
         mudarEspessuraDaBorda(espessura);
-    });
-
-    const selecionadorCorDaBorda = document.getElementById('selecionadorCorDaBorda');
-    selecionadorCorDaBorda.addEventListener('change', () => {
-        const cor = selecionadorCorDaBorda.value;
-        mudarCorDaBorda(cor);
     });
 }
 
