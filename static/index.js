@@ -147,7 +147,7 @@ function atualizarPainelDePropriedades() {
         <div class="mb-2">
             <h3 class="h6 text-danger">Formatação de texto</h3>
             <div class="style-buttons d-flex " style="gap:.25rem;">
-                <button class="style-btn flex-grow-1 ${estiloAtual.fontWeight === '400' ? 'active-style-btn' : ''}" title="Negrito" value="bold">
+                <button class="style-btn flex-grow-1 ${estiloAtual.fontWeight === '700' ? 'active-style-btn' : ''}" title="Negrito" value="bold">
                     <strong>B</strong>
                 </button>
                 <button class="style-btn flex-grow-1 ${estiloAtual.fontStyle === 'italic' ? 'active-style-btn' : ''}" title="Itálico" value="italic">
