@@ -12,6 +12,9 @@ from django.template.loader import render_to_string
 
 logger = logging.getLogger(__name__)
 
+def index(request):
+    return render(request, 'index.html')
+
 def editor(request):
     return render(request, 'editor.html')
 
