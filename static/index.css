@@ -1,163 +1,141 @@
-.delete-btn {
-    position: absolute;
-    top: -10px;
-    right: -10px;
-    background: #e74c3c;
-    color: white;
-    border: none;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 14px;
-    /* display: none; */
-}
-
-/* --- ÁREA DE EDIÇÃO (CANVAS) --- */
-.editor-area {
-    height: 90vh;
-    overflow-y: auto;
-    padding: 40px;
-    display: flex;
-    justify-content: center;
-}
-
-.a4-page {
-    padding: 20mm;
-    width: 210mm;
-    min-height: 297mm;
-    background: white;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    position: relative;
-    box-shadow: 0 0 15px rgba(0,0,0,0.1);
-    transition: background-color 0.3s;
-}
-
-.left-sidebar {
-    border-right: 1px solid #ddd;
-}
-.right-sidebar {
-    border-left: 1px solid #ddd;
-}
-.components-list {
-    padding: 15px;
-    flex: 1;
-}
-.component-item {
-    background: #ecf0f1;
-    border-radius: 4px;
-    /* cursor: move; */
-    display: flex;
-    align-items: center;
-    transition: all 0.3s;
-    border: 2px solid transparent;
-    position: relative;
-}
-.component-item:hover {
-    background: #db3434;
-    color: white;
-    /* transform: translateX(5px); */
-}
-.canvas-container {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    background: #f8f9fa;
+body {
+    background-color: #f0f2f5;
     overflow: hidden;
+    height: 100vh;
 }
-.canvas-toolbar {
-    background: white;
-    padding: 10px 15px;
-    border-bottom: 1px solid #ddd;
+
+/* --- LAYOUT PRINCIPAL --- */
+.container-construtor {
     display: flex;
-    gap: 5px;
+    height: calc(100vh - 56px);
 }
-.toolbar-btn {
-    background: #ecf0f1;
-    border: 1px solid #bdc3c7;
-    padding: 8px 12px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 14px;
-    transition: all 0.2s;
-}
-.toolbar-btn:hover {
-    background: #bdc3c7;
-}
-.canvas {
-    flex: 1;
+
+.barra-lateral-esquerda {
+    width: 250px;
     background: white;
-    margin: 20px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    position: relative;
-    overflow: auto;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-right: 1px solid #ddd;
+    padding: 15px;
+    overflow-y: auto;
+    z-index: 10;
 }
-.canvas-grid {
-    background-image: 
-        linear-gradient(0deg, transparent 24%, rgba(0, 0, 0, .05) 25%, rgba(0, 0, 0, .05) 26%, transparent 27%, transparent 74%, rgba(0, 0, 0, .05) 75%, rgba(0, 0, 0, .05) 76%, transparent 77%, transparent),
-        linear-gradient(90deg, transparent 24%, rgba(0, 0, 0, .05) 25%, rgba(0, 0, 0, .05) 26%, transparent 27%, transparent 74%, rgba(0, 0, 0, .05) 75%, rgba(0, 0, 0, .05) 76%, transparent 77%, transparent);
-    background-size: 50px 50px;
-    min-height: 100%;
-}
-.right-sidebar {
+
+.barra-lateral-direita {
+    width: 320px;
     background: white;
     border-left: 1px solid #ddd;
+    padding: 15px;
+    overflow-y: auto;
+    z-index: 10;
+}
+
+.area-canvas {
+    flex: 1;
+    background: #e9ecef;
+    padding: 40px;
+    overflow: auto;
+    display: flex;
+    justify-content: center;
+}
+
+/* Folha A4 */
+.pagina-a4 {
+    width: 794px;
+    min-height: 1123px;
+    background: white;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+/* Componentes arrastáveis */
+.item-arrastavel {
+    padding: 10px;
+    margin-bottom: 10px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s;
+}
+
+.item-arrastavel:hover {
+    background: #e2e6ea;
+    transform: translateX(5px);
+}
+
+.item-arrastavel i {
+    margin-right: 10px;
+    font-size: 1.2rem;
+}
+
+/* Elementos no canvas */
+.elemento-relatorio {
+    position: absolute;
+    border: 1px dashed transparent;
+    cursor: move;
+    box-sizing: border-box;
+}
+
+.elemento-relatorio.selecionado {
+    border: 2px dashed #007bff;
+    z-index: 100;
+}
+
+/* Conteúdos internos */
+.el-texto {
+    padding: 5px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.el-tabela-placeholder {
+    width: 100%;
+    height: 100%;
+    background: #fff;
+    border: 1px solid #ccc;
     display: flex;
     flex-direction: column;
-    overflow-y: auto;
 }
-.style-buttons {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 5px;
-    margin-bottom: 10px;
-}
-.style-btn {
-    background: white;
-    border: 1px solid #ddd;
-    padding: 8px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: all 0.2s;
+
+.el-tabela-cabecalho {
+    height: 30px;
+    background: #eee;
+    border-bottom: 1px solid #ccc;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-weight: bold;
+    font-size: 0.8rem;
 }
-.style-btn:hover, .active-style-btn {
-    background: #eff1f1;
-    border-color: #db3434;
-}
-.property-input {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    margin-bottom: 10px;
-    font-size: 14px;
-}
-.property-label {
-    display: block;
-    font-size: 13px;
-    color: #555;
-    margin-bottom: 5px;
-}
-.color-picker-group {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-.color-picker-wrapper {
+
+.el-tabela-corpo {
     flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-style: italic;
+    font-size: 0.8rem;
+    padding: 5px;
+    text-align: center;
+    flex-direction: column;
 }
-.color-picker {
-    width: 100%;
-    height: 40px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    cursor: pointer;
+
+/* --- ESTILOS DO QUERY BUILDER (Dentro do Modal) --- */
+.modal-xl-customizado {
+    max-width: 95%;
+}
+
+.oculto-custom {
+    display: none !important;
+}
+
+pre {
+    background: #212529;
+    color: #2ecc71;
+    padding: 10px;
+    border-radius: 6px;
+    max-height: 200px;
+    overflow: auto;
 }

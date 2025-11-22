@@ -1,113 +1,265 @@
-{% load static %}
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador de Relatórios Dinâmico</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/MaterialDesign-Webfont/7.4.47/css/materialdesignicons.min.css">
+    <title>Gerador de relatório SAMU</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="{% static 'index.css' %}">
 </head>
+
 <body>
-    
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Left Sidebar - Components -->
-            <div class="left-sidebar col-lg-2 p-0">
-                <div class="sidebar-header bg-danger p-2 text-center text-white font-weight-bold">Componentes</div>
-                <div class="components-list p-2">
-                    <div class="component-item my-2 py-2 px-3 user-select-none" data-type="text" id="adicionarTexto">
-                        📝 Texto
-                    </div>
-                    <div class="component-item my-1 py-2 px-3 user-select-none" data-type="table" id="adicionarTabela">
-                        📋 Tabela
-                    </div>
-                </div>
+
+    <nav class="navbar navbar-dark bg-dark shadow-sm">
+        <span class="navbar-brand mb-0 h1"><i class="bi bi-file-earmark-pdf-fill"></i>Gerador de relatórios SAMU</span>
+        <div>
+            <button class="btn btn-outline-light btn-sm mr-2" id="btn-salvar-modelo">
+                <i class="bi bi-save"></i> Salvar modelo
+            </button>
+            <button class="btn btn-primary btn-sm" id="btn-gerar-relatorio">
+                <i class="bi bi-printer"></i> Gerar PDF
+            </button>
+        </div>
+    </nav>
+
+    <div class="container-fluid container-construtor">
+
+        <div class="barra-lateral-esquerda">
+            <h6 class="text-muted font-weight-bold text-uppercase small mb-3">Componentes</h6>
+            <div class="item-arrastavel" draggable="true" data-tipo="texto"><i class="bi bi-fonts text-primary"></i> Texto livre</div>
+            <div class="item-arrastavel" draggable="true" data-tipo="tabela"><i class="bi bi-table text-success"></i> Tabela de dados</div>
+
+            <div class="alert alert-info small mt-4"><i class="bi bi-info-circle"></i> Arraste para o papel ao lado.
+            </div>
+        </div>
+
+        <div class="area-canvas">
+            <div id="canvas-pagina" class="pagina-a4 dropzone"></div>
+        </div>
+
+        <div class="barra-lateral-direita">
+            <h6 class="text-muted font-weight-bold text-uppercase small mb-3 border-bottom pb-2">Propriedades</h6>
+
+            <div id="propriedades-vazio" class="text-center text-muted py-5">
+                <i class="bi bi-cursor mb-2" style="font-size: 2rem;"></i>
+                <p class="small">Selecione um elemento.</p>
             </div>
 
-            <!-- Canvas -->
-            <div class="col-lg-7">
+            <div id="painel-propriedades" class="oculto-custom">
+                
+                <div id="grupo-prop-tabela" class="oculto-custom mb-3 border rounded p-2 bg-light">
+                    <label class="small font-weight-bold text-success"><i class="bi bi-database"></i> Dados da
+                        tabela</label>
+                    <button class="btn btn-success btn-sm btn-block" id="btn-configurar-consulta">
+                        <i class="bi bi-gear-fill"></i> Configurar consulta
+                    </button>
+                    <div id="status-consulta" class="small mt-2 text-center text-muted">(Não configurado)</div>
+                </div>
 
-                <!-- Botões de transição de abas -->
-                <nav>
-                    <div class="nav nav-tabs" id="nav-tab" role="tablist">
-                        <button class="nav-link active" id="nav-editor-tab" data-toggle="tab" data-target="#nav-editor" type="button" role="tab" aria-controls="nav-editor" aria-selected="true">
-                            <i class="mdi mdi-file-edit pr-1"></i>
-                            Editar
-                        </button>
-                        <button class="nav-link" id="nav-preview-tab" data-toggle="tab" data-target="#nav-preview" type="button" role="tab" aria-controls="nav-preview" aria-selected="false">
-                            <i class="mdi mdi-play pr-1"></i>
-                            Gerar
-                        </button>
-                    </div>
-                </nav>
+                <div id="grupo-prop-conteudo-texto" class="form-group mb-2 oculto-custom">
+                    <label class="small font-weight-bold">Conteúdo</label>
+                    <textarea id="prop-texto-conteudo" class="form-control form-control-sm" rows="3"></textarea>
+                </div>
 
-                <!-- Abas de edição de pre-visualização -->
-                <div class="tab-content" id="nav-tabContent">
-                    <!-- Editor-->
-                    <div class="tab-pane fade show active" id="nav-editor" role="tabpanel" aria-labelledby="nav-editor-tab">
-                        <div class="editor-area">
-                            <div id="page-canvas" class="a4-page dropzone">
-                                
+                <hr>
+                <h6 class="small font-weight-bold text-muted mt-3">Estilo</h6>
+                <div class="form-row mb-2">
+                    <div class="col-6"><label class="small">Fundo</label><input type="color" id="prop-cor-fundo"
+                            class="form-control form-control-sm"></div>
+                    <div class="col-6"><label class="small">Texto</label><input type="color" id="prop-cor-texto"
+                            class="form-control form-control-sm"></div>
+                </div>
+                <div class="form-row mb-2">
+                    <div class="col-6"><label class="small">Tam. (px)</label><input type="number" id="prop-tamanho-fonte"
+                            class="form-control form-control-sm"></div>
+                    <div class="col-6"><label class="small">Peso</label><select id="prop-peso-fonte"
+                            class="custom-select custom-select-sm">
+                            <option value="normal">Normal</option>
+                            <option value="bold">Negrito</option>
+                        </select></div>
+                </div>
+                <div class="form-group mb-2">
+                    <label class="small">Borda</label>
+                    <select id="prop-borda" class="custom-select custom-select-sm">
+                        <option value="none">Nenhuma</option>
+                        <option value="1px solid #000">Sólida Fina</option>
+                        <option value="1px dashed #666">Tracejada</option>
+                    </select>
+                </div>
+                <button class="btn btn-danger btn-sm btn-block mt-4" id="btn-deletar-elemento" >Remover elemento</button>
+            </div>
+        </div>
+    </div>
 
-                                <div class="text-center mb-4 border-bottom pb-3">
-                                    <h2 class="m-0">Relatório SAMU 192</h2>
-                                    <small class="text-muted">Gerado pelo Sistema Integrado</small>
+    <div class="modal fade" id="modalConstrutorConsulta" tabindex="-1" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-xl-customizado modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title"><i class="bi bi-diagram-3-fill"></i> Construtor de consulta (SQL Visual)
+                    </h5>
+                    <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
+                </div>
+                <div class="modal-body bg-light">
+
+                    <div class="row">
+                        <div class="col-lg-8">
+
+                            <div class="card shadow-sm mb-4">
+                                <div class="card-header bg-primary text-white">
+                                    <i class="bi bi-database-fill-gear"></i> 1. Mapeamento de tabelas (junções)
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-row align-items-end mb-3">
+                                        <div class="col-md-4">
+                                            <label class="font-weight-bold small">Entidade principal</label>
+                                            <select class="custom-select" id="select-raiz">
+                                                <option value="" selected disabled>Carregando...</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-8 text-muted small d-flex align-items-center mt-2 mt-md-0">
+                                            <i class="bi bi-info-circle mr-1"></i> Selecione a tabela raiz carregada do
+                                            arquivo JSON.
+                                        </div>
+                                    </div>
+
+                                    <div id="container-tabelas" class="border rounded p-3 bg-light oculto-custom">
+                                        <h6 class="font-weight-bold text-secondary mb-3">Estrutura da Consulta:</h6>
+                                        <div id="lista-tabelas">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="wrapper-secoes" class="oculto-custom">
+                                <div class="col-lg-12 mb-4">
+                                    <div class="card shadow-sm h-100 border-success"
+                                        style="border-top: 4px solid #198754;">
+                                        <div class="card-header bg-white text-success">
+                                            <i class="bi bi-table"></i> 2. Colunas e Métricas
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="form-row align-items-end mb-3">
+                                                <div class="col-md-3">
+                                                    <label class="small font-weight-bold text-muted">Origem</label>
+                                                    <select class="custom-select" id="select-col-tabela"></select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label class="small font-weight-bold text-muted">Campo</label>
+                                                    <select class="custom-select" id="select-col-campo" disabled>
+                                                        <option value="" disabled selected>Selecione...</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <label class="small font-weight-bold text-muted">Função
+                                                        (Agregação)</label>
+                                                    <select class="custom-select" id="select-col-agregacao">
+                                                        <option value="">Nenhuma</option>
+                                                        <option value="Count">Contagem</option>
+                                                        <option value="Sum">Soma</option>
+                                                        <option value="Avg">Média</option>
+                                                        <option value="Min">Mínimo</option>
+                                                        <option value="Max">Máximo</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-2 mt-2 mt-md-0">
+                                                    <button class="btn btn-success btn-block" id="btn-add-coluna"
+                                                        disabled>Incluir</button>
+                                                </div>
+                                            </div>
+
+                                            <div id="lista-colunas-selecionadas" class="d-flex flex-wrap mt-3">
+                                            </div>
+
+                                            <span id="msg-sem-colunas" class="text-muted small w-100 text-center py-3 border border-dashed d-block">
+                                                Nenhuma coluna selecionada.
+                                            </span>
+                                        </div>
+                                    </div>
                                 </div>
 
+                                <div class="col-lg-12 mb-4">
+                                    <div class="card shadow-sm h-100 border-warning"
+                                        style="border-top: 4px solid #ffc107;">
+                                        <div class="card-header bg-white text-dark">
+                                            <i class="bi bi-funnel-fill text-warning"></i> 3. Filtros
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="form-row mb-3 bg-light p-2 rounded border mx-0">
+                                                <div class="col-md-3">
+                                                    <select class="custom-select custom-select-sm"
+                                                        id="select-filtro-tabela"></select>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <select class="custom-select custom-select-sm"
+                                                        id="select-filtro-campo" disabled>
+                                                        <option value="" disabled selected>Campo...</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <select class="custom-select custom-select-sm"
+                                                        id="select-filtro-operador">
+                                                        <option value="exact">Igual (=)</option>
+                                                        <option value="icontains">Contém</option>
+                                                        <option value="gte">Maior Igual (>=)</option>
+                                                        <option value="lte">Menor Igual (<=)</option>
+                                                        <option value="isnull">É Nulo?</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <input type="text" class="form-control form-control-sm"
+                                                        id="input-filtro-valor" placeholder="Valor...">
+                                                </div>
+                                                <div class="col-md-1">
+                                                    <button class="btn btn-warning btn-sm btn-block" id="btn-add-filtro"
+                                                        disabled>+</button>
+                                                </div>
+                                            </div>
+                                            <div id="container-tabela-filtros" class="oculto-custom">
+                                                <table class="table table-sm table-hover mb-0">
+                                                    <thead class="thead-light">
+                                                        <tr>
+                                                            <th>Campo</th>
+                                                            <th>Operador</th>
+                                                            <th>Valor</th>
+                                                            <th></th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="tbody-filtros"></tbody>
+                                                </table>
+                                            </div>
+                                            <span id="msg-sem-filtros" class="text-muted small">Nenhum filtro aplicado.</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
+                        <div class="col-lg-4">
+                            <div class="card shadow sticky-top" style="top: 20px;">
+                                <div class="card-header bg-dark text-white">Carga útil em JSON</div>
+                                <div class="card-body bg-dark">
+                                    <pre class="mb-0 small" id="saida-json">{}</pre>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Pré-visualização -->
-                    <div class="tab-pane fade show active" id="nav-preview" role="tabpanel" aria-labelledby="nav-preview-tab"></div>
                 </div>
-                
-            </div>
-
-            <!-- Right Sidebar - Properties -->
-            <div class="right-sidebar col-lg-3 p-0">
-                <div class="sidebar-header bg-danger p-2 text-center text-white font-weight-bold">Propriedades</div>
-                <div class="p-3" id="properties">
-                    <div class="no-selection">
-                        Selecione um elemento para editar suas propriedades
-                    </div>
-                    
+                <div class="modal-footer bg-white">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="btn-salvar-config-tabela">
+                        <i class="bi bi-check-circle"></i> Salvar configuração
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
 
-    <!-- Modal para configuração da tabela -->
-    <div class="modal fade show" id="exampleModalXl" tabindex="-1" aria-labelledby="exampleModalXlLabel" aria-modal="true" role="dialog">
-        <div class="modal-dialog modal-xl modal-dialog-scrollable">
-            <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title h4" id="exampleModalXlLabel">Construtor de consulta</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
-                <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                
-                <!-- Conteúdo do outro arquivo vai dentro do container-->
-                <div class="container-fluid"></div>
-
-            </div>
-            </div>
-        </div>
-    </div>
-    <button type="button" data-toggle="modal" data-target="#exampleModalXl">Configurar tabela</button>
-
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/interact.js/1.10.11/interact.min.js"></script>
-    
-
-
-    <script src="{% static 'index.js' %}" type="module"></script>
+    <script type="module" src="{% static 'js/index.js' %}"></script>
 </body>
 </html>
