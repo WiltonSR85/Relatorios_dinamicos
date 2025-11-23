@@ -1,5 +1,5 @@
 esquema_bd = {
-  "Chamado": {
+  "Chamado": { 
     "label_tabela": "Chamado",
     "app_model": "chamado.Chamado",
     "campos": [

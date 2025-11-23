@@ -17,6 +17,30 @@ def index(request):
 
 def retornar_esquema(request):
     from setup.esquema import esquema_bd
+    from .utils import ConstrutorConsulta
+    
+    carga = {
+        "fonte_principal": "Base",
+        "colunas": [
+            {
+            "campo": "base_setor__nome",
+            "label": "Nome do setor",
+            "agregacao": "Count"
+            }
+        ],
+        "filtros": [
+            {
+                "campo": "base_setor__nome",
+                "operador": "exact",
+                "valor": "TARM"
+            }
+        ],
+        "agrupamentos": []
+    }
+
+    ConstrutorConsulta(esquema_bd, carga)
+    
+    
 
     return JsonResponse(esquema_bd)
 
