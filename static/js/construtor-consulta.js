@@ -12,7 +12,7 @@ const estadoGlobal = {
 
 export async function iniciarAplicacao() {
     try {
-        const resposta = await fetch('schema.json');
+        const resposta = await fetch('/esquema');
         if (!resposta.ok) throw new Error('Falha na rede');
 
         ESQUEMA_DB = await resposta.json();
@@ -42,7 +42,10 @@ export function abrirConstrutorConsulta() {
     // Carrega lista de tabelas raiz no select
     const sel = document.getElementById('select-raiz');
     sel.innerHTML = '<option value="" disabled selected>Selecione...</option>';
-    Object.keys(ESQUEMA_DB).forEach(k => sel.innerHTML += `<option value="${k}">${ESQUEMA_DB[k].label_tabela}</option>`);
+    Object.keys(ESQUEMA_DB).forEach(k => 
+        sel.innerHTML += `
+        <option value="${k}">${ESQUEMA_DB[k].label_tabela}</option>`
+    );
 
     // Tenta carregar config existente
     const cfg = JSON.parse(elementoSelecionado.dataset.configConsulta || "{}");

@@ -4,18 +4,18 @@ import * as CC from './construtor-consulta.js';
 
 window.addEventListener('DOMContentLoaded', () => {
     inicializarOuvintesPropriedades();
-    CC.renderizarTudo();
+    CC.iniciarAplicacao();
+    //CC.renderizarTudo();
 
-    // --- Botões Globais ---
     document.getElementById("btn-salvar-modelo").addEventListener("click", salvarTemplateJson);
     document.getElementById("btn-gerar-relatorio").addEventListener("click", gerarRelatorioFinal);
     document.getElementById("btn-deletar-elemento").addEventListener('click', deletarElementoSelecionado);
 
-    // --- Botões do construtor de consulta ---
+
     document.getElementById("btn-configurar-consulta").addEventListener("click", CC.abrirConstrutorConsulta);
     document.getElementById("btn-salvar-config-tabela").addEventListener('click', CC.salvarConfiguracaoTabela);
 
-    // Ouvintes do modal
+
     document.getElementById('select-raiz').addEventListener('change', (e) => {
         if (e.target.value) 
             CC.iniciarRaiz(e.target.value);
@@ -40,11 +40,11 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 
     // Filtros e colunas 
-    document.getElementById('select-col-tabela').addEventListener('change', (e) => atualizarSelectCampos(e.target.value, 'select-col-campo', 'btn-add-coluna'));
+    document.getElementById('select-col-tabela').addEventListener('change', (e) => CC.atualizarSelectCampos(e.target.value, 'select-col-campo', 'btn-add-coluna'));
     document.getElementById('select-col-campo').addEventListener('change', (e) => document.getElementById('btn-add-coluna').disabled = !e.target.value);
     document.getElementById('btn-add-coluna').addEventListener('click', CC.adicionarColuna);
 
-    document.getElementById('select-filtro-tabela').addEventListener('change', (e) => atualizarSelectCampos(e.target.value, 'select-filtro-campo', 'btn-add-filtro'));
+    document.getElementById('select-filtro-tabela').addEventListener('change', (e) => CC.atualizarSelectCampos(e.target.value, 'select-filtro-campo', 'btn-add-filtro'));
     document.getElementById('select-filtro-campo').addEventListener('change', (e) => document.getElementById('btn-add-filtro').disabled = !e.target.value);
     document.getElementById('btn-add-filtro').addEventListener('click', CC.adicionarFiltro);
 

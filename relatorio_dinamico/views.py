@@ -15,6 +15,11 @@ logger = logging.getLogger(__name__)
 def index(request):
     return render(request, 'index.html')
 
+def retornar_esquema(request):
+    from setup.esquema import esquema_bd
+
+    return JsonResponse(esquema_bd)
+
 def editor(request):
     return render(request, 'editor.html')
 

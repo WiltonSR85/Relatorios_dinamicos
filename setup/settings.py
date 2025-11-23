@@ -39,6 +39,11 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_browser_reload',
     'relatorio_dinamico',
+    'base',
+    'setor', 
+    'pessoa',
+    'chamado',
+    'unidade',
 ]
 
 MIDDLEWARE = [
