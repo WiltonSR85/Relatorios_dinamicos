@@ -135,7 +135,7 @@ export function adicionarColuna() {
     if (tableIdx === "" || fieldVal === "") return;
 
     const tab = estadoGlobal.tabelasAtivas[tableIdx];
-    const campoObj = tab.campos.find(c => c.val === fieldVal);
+    const campoObj = tab.campos.find(c => c.valor === fieldVal);
     const caminho = tab.caminho + fieldVal;
     const labelDisplay = agg ? `${agg} de ${campoObj.label}` : campoObj.label;
 
@@ -206,7 +206,7 @@ export function atualizarSelectCampos(tabelaIdx, idSelectAlvo, idBtn) {
     const tab = estadoGlobal.tabelasAtivas[tabelaIdx];
     tab.campos.forEach(campo => {
         const opt = document.createElement('option');
-        opt.value = campo.val;
+        opt.value = campo.valor;
         opt.text = campo.label;
         selectAlvo.appendChild(opt);
     });

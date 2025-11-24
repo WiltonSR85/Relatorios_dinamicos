@@ -83,14 +83,14 @@ class ConstrutorConsulta:
         config_entidade_final = self.esquema.get(entidade_atual)
         lista_campos = config_entidade_final.get('campos', [])
         
-        config_campo = self._buscar_na_lista(lista_campos, 'val', nome_campo)
+        config_campo = self._buscar_na_lista(lista_campos, 'valor', nome_campo)
         
         if not config_campo:
             raise ValidationError(
                 f"Campo '{nome_campo}' não encontrado na entidade '{entidade_atual}'."
             )
             
-        partes_caminho_orm.append(config_campo['val'])
+        partes_caminho_orm.append(config_campo['valor'])
         
         # retorna o caminho unido (ex: solicitante__email), o tipo (ex: string)
         return "__".join(partes_caminho_orm), config_campo['tipo']
@@ -115,6 +115,7 @@ class ConstrutorConsulta:
             consulta_orm = f"{caminho_orm}__{sufixo_operador}"
             lista_q.append(Q(**{consulta_orm: valor}))
             
+        print(lista_q)
         return lista_q
 
 
@@ -130,6 +131,7 @@ class ConstrutorConsulta:
         if filtros:
             # Combina todos os filtros com AND (intersecção)
             queryset = queryset.filter(reduce(operator.and_, filtros))
+            print("queryset 1:", queryset.query)
             
         # 2. Prepara colunas
         dimensoes = []   # para o Group By (.values)
@@ -158,7 +160,7 @@ class ConstrutorConsulta:
                     'tipo': 'number' # agregações são sempre numéricas
                 })
             else:
-                # É uma dimensão (agrupamento)
+                # é uma dimensão (agrupamento)
                 dimensoes.append(caminho_orm)
                 mapa_saida.append({
                     'chave_db': caminho_orm, 
@@ -170,16 +172,21 @@ class ConstrutorConsulta:
         # ORDEM CRÍTICA: values() -> annotate() -> values()
         
         if dimensoes:
+            # define os campos para o GROUP BY (agrupamento)
             queryset = queryset.values(*dimensoes)
+            print("queryset 2:", queryset.query)
         
         if metricas:
+            # calcula as funções de agregação para cada grupo
             queryset = queryset.annotate(**metricas)
+            print("queryset 3:", queryset.query)
             
         # limpa o SELECT final para trazer apenas o solicitado
         chaves_select_final = dimensoes + list(metricas.keys())
         if chaves_select_final:
             queryset = queryset.values(*chaves_select_final)
-            
+            print("queryset 4:", queryset.query)
+
         # 4. Formatação dos dados
         # transforma o resultado bruto do banco no formato legível (dict)
         dados_formatados = []

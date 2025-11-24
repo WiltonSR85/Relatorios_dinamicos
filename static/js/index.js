@@ -107,16 +107,80 @@ function obterEsquemaRelatorio() {
     });
 }
 
-function salvarTemplateJson() { 
-    console.log(obterEsquemaRelatorio()); 
-    alert("Template salvo no Console!"); 
+
+function getCookie(name) {
+    const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return v ? v.pop() : '';
 }
 
-function gerarRelatorioFinal() {
-    const payload = { 
-        layout: obterEsquemaRelatorio(), 
-        html: document.getElementById('canvas-pagina').outerHTML 
-    };
-    console.log(JSON.stringify(payload, null, 2));
-    alert(JSON.stringify(payload, null, 2));
+async function gerarRelatorioFinal() {
+    // envia posições relativas ao topo/esquerda da FOLHA (reportCanvas)
+    const items = obterEsquemaRelatorio();
+    const csrftoken = getCookie('csrftoken');
+
+    const resp = await fetch('/gerar_pdf/', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken         // header exigido pelo Django CSRF
+        },
+        body: JSON.stringify({
+            elementos: items,
+            html: getHTML()
+        })
+    });
+
+    if (!resp.ok) {
+        const ct = resp.headers.get('content-type') || '';
+        if (ct.includes('application/json')) {
+            const data = await resp.json();
+            alert('Erro ao gerar PDF: ' + (data.error || JSON.stringify(data)));
+        } else {
+            const text = await resp.text();
+            alert('Erro ao gerar PDF: HTTP ' + resp.status + '\n' + text.slice(0, 1000));
+        }
+        return;
+    }
+
+    const ct = resp.headers.get('content-type') || '';
+    if (ct.includes('application/pdf')) {
+        const blob = await resp.blob();
+        const preview = document.createElement('object');
+        preview.data = window.URL.createObjectURL(blob);
+        preview.type = "application/pdf";
+
+
+        preview.style.height = "297mm";
+        preview.style.width = "210mm";
+        preview.style.maxWidth = "100%";
+
+        const navPreview = document.getElementsByClassName('area-canvas')[0];
+        navPreview.innerHTML = "";
+        navPreview.appendChild(preview);
+
+    } else {
+        const text = await resp.text();
+        alert('Resposta inesperada: ' + text.slice(0, 500));
+    }
+}
+
+function getHTML(){
+    return `
+        <!DOCTYPE html>
+        <html lang="pt-br">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body>
+            ${document.getElementById('canvas-pagina').outerHTML}
+        </body>
+        </html>
+    `;    
+}
+
+
+function salvarTemplateJson() {
+    console.log(obterEsquemaRelatorio());
 }
