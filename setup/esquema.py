@@ -4,9 +4,8 @@ esquema_bd = {
     "app_model": "chamado.Chamado",
     "campos": [
       { "label": "Motivo", "valor": "motivo", "tipo": "string" },
-      { "label": "Data/Hora Abertura", "valor": "dataHora", "tipo": "datetime" },
       { "label": "Status", "valor": "status", "tipo": "string" },
-      { "label": "Número de Vítimas", "valor": "numeroVitimas", "tipo": "number" },
+      { "label": "Número de vítimas", "valor": "numero_vitimas", "tipo": "number" },
       { "label": "É incidente?", "valor": "inicidente", "tipo": "boolean" },
       { "label": "Cidade (Ocorrência)", "valor": "cidade", "tipo": "string" },
       { "label": "Bairro (Ocorrência)", "valor": "bairro", "tipo": "string" }
@@ -28,8 +27,8 @@ esquema_bd = {
         "model_destino": "AtendimentoPessoa"
       },
       {
-        "nome_amigavel": "Histórico de Trâmites",
-        "campo_relacao": "tramitechamado_set",
+        "nome_amigavel": "TramiteChamado",
+        "campo_relacao": "tramite_chamado",
         "model_destino": "TramiteChamado"
       },
       {
@@ -44,7 +43,7 @@ esquema_bd = {
     "app_model": "pessoa.Pessoa",
     "campos": [
       { "label": "Nome completo", "valor": "nome", "tipo": "string" },
-      { "label": "Data Nascimento", "valor": "dataNascimentoReal", "tipo": "date" },
+      { "label": "Data de nascimento", "valor": "dataNascimentoReal", "tipo": "date" },
       { "label": "Sexo", "valor": "sexo", "tipo": "string" },
       { "label": "Telefone celular", "valor": "telefoneCelular", "tipo": "string" }
     ],
@@ -56,8 +55,13 @@ esquema_bd = {
       },
       {
         "nome_amigavel": "Base",
-        "campo_relacao": "baseCadastro",
+        "campo_relacao": "base_cadastro",
         "model_destino": "Base"
+      },
+      {
+        "nome_amigavel": "AtendimentoPessoa",
+        "campo_relacao": "pessoa_atendimento",
+        "model_destino": "AtendimentoPessoa"
       }
     ]
   },
@@ -78,8 +82,8 @@ esquema_bd = {
     ],
     "conexoes": [
       {
-        "nome_amigavel": "Paciente",
-        "campo_relacao": "paciente",
+        "nome_amigavel": "Pessoa",
+        "campo_relacao": "pessoa",
         "model_destino": "Pessoa"
       },
       {
@@ -95,7 +99,7 @@ esquema_bd = {
     "campos": [
       { "label": "Nome da base", "valor": "nome", "tipo": "string" },
       { "label": "Cidade", "valor": "cidade", "tipo": "string" },
-      { "label": "Estado (UF)", "valor": "estado", "tipo": "string" },
+      { "label": "Estado (UF)", "valor": "uf", "tipo": "string" },
       { "label": "Bairro", "valor": "bairro", "tipo": "string" }
     ],
     "conexoes": [

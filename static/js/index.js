@@ -172,6 +172,9 @@ function getHTML(){
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+                @page { size: A4; margin: 0; }
+            </style>
         </head>
         <body>
             ${document.getElementById('canvas-pagina').outerHTML}

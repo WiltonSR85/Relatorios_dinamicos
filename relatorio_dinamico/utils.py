@@ -3,6 +3,8 @@ from django.db.models import Q, Count, Sum, Avg, Min, Max
 from django.core.exceptions import ValidationError
 from functools import reduce
 import operator
+from bs4 import BeautifulSoup
+import json
 
 # mapa de funções de agregação permitidas 
 MAPA_AGREGACAO = {
@@ -16,8 +18,8 @@ MAPA_AGREGACAO = {
 class ConstrutorConsulta:
     def __init__(self, esquema, dados_entrada):
         """
-        :param esquema: Dicionário completo de configurações (SCHEMA_RELATORIOS)
-        :param dados_entrada: JSON vindo do frontend com a definição do relatório
+        :param esquema: Dicionário representando o esquema do BD
+        :param dados_entrada: JSON especificando os metadados da consulta
         """
         self.esquema = esquema
         self.dados_entrada = dados_entrada
@@ -126,10 +128,9 @@ class ConstrutorConsulta:
         """
         queryset = self.modelo_classe.objects.all()
         
-        # 1. Aplica Filtros
         filtros = self._construir_filtros()
         if filtros:
-            # Combina todos os filtros com AND (intersecção)
+            # combina todos os filtros com AND
             queryset = queryset.filter(reduce(operator.and_, filtros))
             print("queryset 1:", queryset.query)
             
@@ -167,16 +168,18 @@ class ConstrutorConsulta:
                     'rotulo': rotulo, 
                     'tipo': tipo_campo
                 })
-        
+        print("mapa_saida:", mapa_saida)
         # 3. Constrói a QuerySet na ordem correta
         # ORDEM CRÍTICA: values() -> annotate() -> values()
         
         if dimensoes:
+            print("dimensões:", dimensoes)
             # define os campos para o GROUP BY (agrupamento)
             queryset = queryset.values(*dimensoes)
             print("queryset 2:", queryset.query)
         
         if metricas:
+            print("metricas", metricas)
             # calcula as funções de agregação para cada grupo
             queryset = queryset.annotate(**metricas)
             print("queryset 3:", queryset.query)
@@ -195,15 +198,80 @@ class ConstrutorConsulta:
             nova_linha = {}
             for item_mapa in mapa_saida:
                 valor = linha.get(item_mapa['chave_db'])
+                print("itera pelo mapa_saida")
                 
-                # Formatações cosméticas (opcional)
+                # formatações visuais (opcional)
                 if item_mapa['tipo'] == 'boolean':
                     valor = "Sim" if valor else "Não"
                 elif item_mapa['tipo'] == 'datetime' and valor:
-                    # Formata data se o objeto tiver método strftime
                     valor = valor.strftime("%d/%m/%Y %H:%M") if hasattr(valor, 'strftime') else valor
                     
                 nova_linha[item_mapa['rotulo']] = valor
             dados_formatados.append(nova_linha)
             
         return dados_formatados
+
+
+class ConstrutorHTML:
+    
+    @staticmethod
+    def inserir_dados_no_html(esquema_bd, html_template):
+        soup = BeautifulSoup(html_template, 'html.parser')
+        tabela_divs = soup.find_all(attrs={'data-config-consulta': True})
+
+        for tab_div in tabela_divs:
+            # recupera e processa a configuração
+            dados_consulta_str = tab_div['data-config-consulta']
+            dados_consulta = json.loads(dados_consulta_str)
+            
+            # retorna lista de dicts: [{'Nome': 'João', 'Idade': 30}, ...]
+            dados = ConstrutorConsulta(esquema_bd, dados_consulta).executar()
+            tab_div.clear()
+            
+            if dados:
+                # cria a tabela estilizada
+                tabela_tag = ConstrutorHTML._criar_tabela(soup, dados)
+                tab_div.append(tabela_tag)
+                
+            # remove o atributo de dados para limpar o HTML final
+            del tab_div['data-config-consulta']
+
+        return str(soup)
+
+    @staticmethod
+    def _criar_tabela(soup, lista_dados):
+        """
+        Gera uma tag <table> usando métodos nativos do BeautifulSoup.
+        Recebe: soup (objeto pai), lista_dados (lista de dicts)
+        """
+        # cria a estrutura da tabela
+        table = soup.new_tag('table')
+        thead = soup.new_tag('thead')
+        tr_head = soup.new_tag('tr')
+        
+        # pega as chaves do primeiro dicionário como cabeçalho
+        # O ConstrutorConsulta já retorna as chaves com os rótulos
+        colunas = lista_dados[0].keys()
+        
+        for col in colunas:
+            th = soup.new_tag('th')
+            th.string = str(col)
+            tr_head.append(th)
+        
+        thead.append(tr_head)
+        table.append(thead)
+        
+        tbody = soup.new_tag('tbody')
+        
+        for linha in lista_dados:
+            tr = soup.new_tag('tr')
+            for valor in linha.values():
+                td = soup.new_tag('td')
+                # trata valores None/Null para não aparecer "None" no PDF
+                td.string = str(valor) if valor is not None else "-" 
+                tr.append(td)
+            tbody.append(tr)
+            
+        table.append(tbody)
+        
+        return table
