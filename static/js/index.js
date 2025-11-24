@@ -88,21 +88,36 @@ function soltar(evento) {
 function obterEsquemaRelatorio() {
     return Array.from(document.querySelectorAll('.elemento-relatorio')).map(el => {
         const style = window.getComputedStyle(el);
-        const x = parseFloat(el.dataset.x) || 0;
-        const y = parseFloat(el.dataset.y) || 0;
+
+        // Extrai posição real considerando transform
+        let left = parseFloat(el.style.left) || 0;
+        let top = parseFloat(el.style.top) || 0;
+        let x = parseFloat(el.dataset.x) || 0;
+        let y = parseFloat(el.dataset.y) || 0;
+
+        // Se houver transform, some ao left/top
+        const transform = style.transform;
+        if (transform && transform !== 'none') {
+            const match = transform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
+            if (match) {
+                x = parseFloat(match[1]);
+                y = parseFloat(match[2]);
+            }
+        }
+
         return {
-            id: el.id, 
-            type: el.dataset.type,
+            id: el.id,
+            type: el.dataset.tipo,
             style: {
-                left: (parseFloat(el.style.left) + x) + 'px', 
-                top: (parseFloat(el.style.top) + y) + 'px',
+                left: (left + x) + 'px',
+                top: (top + y) + 'px',
                 width: el.style.width, height: el.style.height,
                 fontSize: style.fontSize, fontWeight: style.fontWeight,
-                color: style.color, backgroundColor: style.backgroundColor, 
+                color: style.color, backgroundColor: style.backgroundColor,
                 border: style.border
             },
-            content: el.dataset.type === 'text' ? el.innerText : null,
-            query: el.dataset.type === 'table' ? JSON.parse(el.dataset.queryConfig || "{}") : null
+            content: el.dataset.tipo === 'texto' ? el.innerText : null,
+            query: el.dataset.tipo === 'tabela' ? JSON.parse(el.dataset.queryConfig || "{}") : null
         };
     });
 }
@@ -172,6 +187,10 @@ function getHTML(){
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>
+                .elemento-relatorio { position: absolute; }
+                .pagina-a4 { width: 794px; min-height: 1123px; position: relative; }
+            </style>
         </head>
         <body>
             ${document.getElementById('canvas-pagina').outerHTML}
