@@ -186,8 +186,9 @@ async function gerarRelatorioFinal() {
         preview.style.maxWidth = "100%";
 
         const navPreview = document.getElementsByClassName('area-canvas')[0];
-        navPreview.innerHTML = "";
-        navPreview.appendChild(preview);
+        navPreview.children[0].classList.add('oculto-custom');
+        navPreview.children[1].classList.remove('oculto-custom');
+        navPreview.children[1].append(preview);
 
     } else {
         const text = await resp.text();
@@ -213,6 +214,13 @@ function getHTML(){
         </html>
     `;    
 }
+
+let btnEditor = document.querySelector("#btn-abrir-editor");
+btnEditor.addEventListener("click", () => {
+    const navPreview = document.getElementsByClassName('area-canvas')[0];
+    navPreview.children[0].classList.remove('oculto-custom');
+    navPreview.children[1].classList.add('oculto-custom');
+});
 
 
 function salvarTemplateJson() {

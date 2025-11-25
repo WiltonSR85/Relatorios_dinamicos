@@ -15,6 +15,9 @@
     <nav class="navbar navbar-dark bg-dark shadow-sm">
         <span class="navbar-brand mb-0 h1"><i class="bi bi-file-earmark-pdf-fill"></i>Gerador de relatórios SAMU</span>
         <div>
+            <button class="btn btn-outline-light btn-sm mr-2" id="btn-abrir-editor">
+                <i class="bi bi-pen"></i> Editor
+            </button>
             <button class="btn btn-outline-light btn-sm mr-2" id="btn-salvar-modelo">
                 <i class="bi bi-save"></i> Salvar modelo
             </button>
@@ -37,6 +40,7 @@
 
         <div class="area-canvas">
             <div id="canvas-pagina" class="pagina-a4 dropzone"></div>
+            <div id="ver-pdf" class="oculto-custom"></div>
         </div>
 
         <div class="barra-lateral-direita">

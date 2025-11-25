@@ -250,7 +250,6 @@ class ConstrutorHTML:
         for th, cabecalho in zip(ths, cabecalhos):
             th.string = cabecalho
 
-
         tbody = tabela.tbody
         estilo_tr = tbody.tr['style'] if 'style' in tbody.tr.attrs else ''
 
