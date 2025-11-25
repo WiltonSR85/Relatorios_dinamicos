@@ -28,7 +28,7 @@ def gerar_pdf(request):
         return JsonResponse({'error': 'JSON inválido', 'detail': str(e)}, status=400)
 
     html = dados_recebidos.get('html')
-    html_final =ConstrutorHTML.inserir_dados_no_html(esquema_bd, html)
+    html_final = ConstrutorHTML.inserir_dados_no_html(esquema_bd, html)
 
     try:
         pdf = HTML(string=html_final, base_url=request.build_absolute_uri('/')).write_pdf()

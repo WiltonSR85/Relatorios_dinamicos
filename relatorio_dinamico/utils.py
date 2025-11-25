@@ -217,61 +217,53 @@ class ConstrutorHTML:
     @staticmethod
     def inserir_dados_no_html(esquema_bd, html_template):
         soup = BeautifulSoup(html_template, 'html.parser')
-        tabela_divs = soup.find_all(attrs={'data-config-consulta': True})
+        tabelas = soup.find_all(attrs={'data-config-consulta': True})
 
-        for tab_div in tabela_divs:
+        for tab in tabelas:
             # recupera e processa a configuração
-            dados_consulta_str = tab_div['data-config-consulta']
+            dados_consulta_str = tab['data-config-consulta']
             dados_consulta = json.loads(dados_consulta_str)
             
             # retorna lista de dicts: [{'Nome': 'João', 'Idade': 30}, ...]
             dados = ConstrutorConsulta(esquema_bd, dados_consulta).executar()
-            tab_div.clear()
             
             if dados:
-                # cria a tabela estilizada
-                tabela_tag = ConstrutorHTML._criar_tabela(soup, dados)
-                tab_div.append(tabela_tag)
-                
+                ConstrutorHTML._preencher_tabela(tab, dados, soup)
+
             # remove o atributo de dados para limpar o HTML final
-            del tab_div['data-config-consulta']
+            del tab['data-config-consulta']
 
         return str(soup)
 
     @staticmethod
-    def _criar_tabela(soup, lista_dados):
+    def _preencher_tabela(tabela, lista_dados, soup):
         """
-        Gera uma tag <table> usando métodos nativos do BeautifulSoup.
+        Preenche a tabela usando métodos nativos do BeautifulSoup.
         Recebe: soup (objeto pai), lista_dados (lista de dicts)
         """
-        # cria a estrutura da tabela
-        table = soup.new_tag('table')
-        thead = soup.new_tag('thead')
-        tr_head = soup.new_tag('tr')
+
+        cabecalhos = lista_dados[0].keys()
+        tr = tabela.thead.tr
+        ths = tr.find_all('th')
         
-        # pega as chaves do primeiro dicionário como cabeçalho
-        # O ConstrutorConsulta já retorna as chaves com os rótulos
-        colunas = lista_dados[0].keys()
-        
-        for col in colunas:
-            th = soup.new_tag('th')
-            th.string = str(col)
-            tr_head.append(th)
-        
-        thead.append(tr_head)
-        table.append(thead)
-        
-        tbody = soup.new_tag('tbody')
-        
+        print("zip", zip(ths, cabecalhos))
+        for th, cabecalho in zip(ths, cabecalhos):
+            th.string = cabecalho
+
+
+        tbody = tabela.tbody
+        estilo_tr = tbody.tr['style'] if 'style' in tbody.tr.attrs else ''
+
+        tbody.clear()
         for linha in lista_dados:
-            tr = soup.new_tag('tr')
+            linha_tabela = soup.new_tag('tr')
+            linha_tabela['style'] = estilo_tr
+            
             for valor in linha.values():
                 td = soup.new_tag('td')
-                # trata valores None/Null para não aparecer "None" no PDF
-                td.string = str(valor) if valor is not None else "-" 
-                tr.append(td)
-            tbody.append(tr)
-            
-        table.append(tbody)
-        
-        return table
+                td.string = str(valor) if valor is not None else "-"
+                linha_tabela.append(td)
+
+            tbody.append(linha_tabela)
+
+        print(soup.prettify())

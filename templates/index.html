@@ -52,10 +52,22 @@
                 <div id="grupo-prop-tabela" class="oculto-custom mb-3 border rounded p-2 bg-light">
                     <label class="small font-weight-bold text-success"><i class="bi bi-database"></i> Dados da
                         tabela</label>
-                    <button class="btn btn-success btn-sm btn-block" id="btn-configurar-consulta">
-                        <i class="bi bi-gear-fill"></i> Configurar consulta
-                    </button>
-                    <div id="status-consulta" class="small mt-2 text-center text-muted">(Não configurado)</div>
+                        <button class="btn btn-success btn-sm btn-block" id="btn-configurar-consulta">
+                            <i class="bi bi-gear-fill"></i> Configurar consulta
+                        </button>
+                        <div id="status-consulta" class="small mt-2 text-center text-muted">(Não configurado)</div>
+                    </div>
+                    
+                    
+                <!-- Oculto por enquanto -->
+                <div id="grupo-prop-tabela" class="oculto-custom mb-3 border rounded p-2 bg-light">
+                    <label class="small font-weight-bold text-success"> Elemento </label>
+                    <select id="prop-elemento-tabela" class="custom-select custom-select-sm">
+                        <option value="tabela">Tabela</option>
+                        <option value="thead">Cabeçalho</option>
+                        <option value="tr">Linha</option>
+                        <option value="th">Células</option>
+                    </select>
                 </div>
 
                 <div id="grupo-prop-conteudo-texto" class="form-group mb-2 oculto-custom">
@@ -65,11 +77,35 @@
 
                 <hr>
                 <h6 class="small font-weight-bold text-muted mt-3">Estilo</h6>
+
+                <div class="form-group mb-2">
+                    <label class="small">Fonte</label>
+                    <select id="prop-fonte-familia" class="custom-select custom-select-sm">
+                        
+                    </select>
+                </div>
+
+                <div class="form-group mb-2">
+                    <label class="small d-block">Alinhamento</label>
+                    <div class="btn-group w-100" role="group" aria-label="Alinhamento de texto" id="prop-botoes-alinhamento">
+                        <button type="button" class="btn btn-outline-secondary btn-sm btn-align" data-align="left" title="Esquerda">
+                            <i class="bi bi-text-left"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm btn-align" data-align="center" title="Centro">
+                            <i class="bi bi-text-center"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm btn-align" data-align="right" title="Direita">
+                            <i class="bi bi-text-right"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm btn-align" data-align="justify" title="Justificado">
+                            <i class="bi bi-justify"></i>
+                        </button>
+                    </div>
+                </div>
+                
                 <div class="form-row mb-2">
-                    <div class="col-6"><label class="small">Fundo</label><input type="color" id="prop-cor-fundo"
-                            class="form-control form-control-sm"></div>
-                    <div class="col-6"><label class="small">Texto</label><input type="color" id="prop-cor-texto"
-                            class="form-control form-control-sm"></div>
+                    <div class="col-6"><label class="small">Fundo</label><input type="color" id="prop-cor-fundo" class="form-control form-control-sm"></div>
+                    <div class="col-6"><label class="small">Texto</label><input type="color" id="prop-cor-texto" class="form-control form-control-sm"></div>
                 </div>
                 <div class="form-row mb-2">
                     <div class="col-6"><label class="small">Tam. (px)</label><input type="number" id="prop-tamanho-fonte"
@@ -84,11 +120,11 @@
                     <label class="small">Borda</label>
                     <select id="prop-borda" class="custom-select custom-select-sm">
                         <option value="none">Nenhuma</option>
-                        <option value="1px solid #000">Sólida Fina</option>
+                        <option value="1px solid #000">Sólida fina</option>
                         <option value="1px dashed #666">Tracejada</option>
                     </select>
                 </div>
-                <button class="btn btn-danger btn-sm btn-block mt-4" id="btn-deletar-elemento" >Remover elemento</button>
+                <button class="btn btn-danger btn-sm btn-block mt-4" id="btn-deletar-elemento">Remover elemento</button>
             </div>
         </div>
     </div>

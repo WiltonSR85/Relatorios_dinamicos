@@ -1,7 +1,6 @@
 // configuração do Interact.js (biblioteca de arrastar/redimensionar)
-export function tornarElementoArrastavel()
-{    
-    interact('.elemento-relatorio').draggable({
+export function tornarElementoArrastavel(objetoInteract){
+    objetoInteract.draggable({
         listeners: {
             move(evento) {
                 if (!evento.target.classList.contains('selecionado')){
@@ -18,8 +17,14 @@ export function tornarElementoArrastavel()
             restriction: 'parent', 
             endOnly: false 
         })]
-    }).resizable({
-        edges: { left: false, right: true, bottom: true, top: false },
+    });
+}
+
+export function tornarElementoRedimencionavel(objetoInteract, edges = { 
+    left: true, right: true, bottom: true, top: true 
+}){
+    objetoInteract.resizable({
+        edges: edges,
         listeners: {
             move(evento) {
                 let { x, y } = evento.target.dataset;

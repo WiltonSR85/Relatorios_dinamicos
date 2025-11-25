@@ -1,6 +1,8 @@
-import { tornarElementoArrastavel } from './interact-config.js';
+//import { tornarElementoArrastavel } from './interact-config.js';
 import { criarElementoRelatorio, selecionarElemento, desselecionarTudo, deletarElementoSelecionado, inicializarOuvintesPropriedades } from './canvas.js';
 import * as CC from './construtor-consulta.js';
+import { fontes } from './canvas.js';
+
 
 window.addEventListener('DOMContentLoaded', () => {
     inicializarOuvintesPropriedades();
@@ -67,8 +69,21 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    tornarElementoArrastavel();
+    //tornarElementoArrastavel('.elemento-relatorio');
+    carregarFontes();
 });
+
+function carregarFontes(){
+    const selectFontes = document.getElementById('prop-fonte-familia');
+    for(let fonte of fontes){
+        const opcao = document.createElement('option');
+        opcao.value = fonte.valor;
+        opcao.innerText = fonte.nome;
+        selectFontes.appendChild(opcao);
+    }
+}
+
+
 
 function iniciarArrasto(evento) { 
     evento.dataTransfer.setData("tipo", evento.target.getAttribute("data-tipo")); 

@@ -34,6 +34,7 @@ export async function iniciarAplicacao() {
 }
 
 export function abrirConstrutorConsulta() {
+    //alert('abrirConstrutorConsulta')
     const elementoSelecionado = getElementoSelecionado();
 
     if (!elementoSelecionado) 
@@ -62,6 +63,7 @@ export function abrirConstrutorConsulta() {
 }
 
 export function salvarConfiguracaoTabela() {
+    //alert('salvarConfiguracaoTabela')
     const elementoSelecionado = getElementoSelecionado();
 
     if (!elementoSelecionado) 
@@ -69,19 +71,35 @@ export function salvarConfiguracaoTabela() {
     const textoJson = document.getElementById('saida-json').innerText;
     elementoSelecionado.dataset.configConsulta = textoJson;
 
-    const payload = JSON.parse(textoJson);
-    if (payload.fonte_principal) {
-        elementoSelecionado.querySelector('.el-tabela-corpo').innerHTML = `
-            <div class="text-success font-weight-bold">Consulta configurada</div>
-            <div class="small">${payload.colunas.length} colunas</div>
-            <div class="small text-muted">Raiz: ${payload.fonte_principal}</div>
-        `;
-    }
+    const dados = JSON.parse(textoJson);
+    const cabecalhos_colunas = dados['colunas'];
+
+    inserirCabecalhosNaTabela(elementoSelecionado, cabecalhos_colunas)
+    
     atualizarPainelPropriedades();
     $('#modalConstrutorConsulta').modal('hide');
 }
 
+function inserirCabecalhosNaTabela(elementoSelecionado, cabeçalhos){
+    const tr = elementoSelecionado.querySelector('thead tr');
+    tr.innerHTML = '';
+    cabeçalhos.forEach(c => {
+        const th = document.createElement('th');
+        th.innerText = c.label;
+        tr.appendChild(th);
+    })
+
+    const tds = elementoSelecionado.querySelectorAll('tbody tr > td');
+    
+    if (cabeçalhos.length < tds.length){
+        for (let i = tds.length - 1; i >= cabeçalhos.length; i--) {
+            tds[i].remove();
+        }
+    }
+}
+
 export function redefinirConstrutorConsulta() {
+    //alert('redefinirConstrutorConsulta')
     estadoGlobal.modeloRaiz = "";
     estadoGlobal.tabelasAtivas = [];
     estadoGlobal.colunasEscolhidas = [];
@@ -91,6 +109,7 @@ export function redefinirConstrutorConsulta() {
 }
 
 export function iniciarRaiz(nomeModelo) {
+    //alert('iniciarRaiz')
     estadoGlobal.modeloRaiz = nomeModelo;
     estadoGlobal.tabelasAtivas = [];
     estadoGlobal.colunasEscolhidas = [];
@@ -102,6 +121,7 @@ export function iniciarRaiz(nomeModelo) {
 }
 
 export function carregarTabela(nomeModelo, nomeAmigavel, caminhoPrefixo, tipo) {
+    //alert('carregarTabela')
     const esquema = ESQUEMA_DB[nomeModelo];
     if (!esquema) return;
 
@@ -117,6 +137,7 @@ export function carregarTabela(nomeModelo, nomeAmigavel, caminhoPrefixo, tipo) {
 }
 
 export function adicionarJuncao(tabelaPaiId, conexaoIdx) {
+    //alert('adicionarJuncao')
     const tabelaPai = estadoGlobal.tabelasAtivas.find(t => t.id === tabelaPaiId);
     if (!tabelaPai) return;
 
@@ -128,6 +149,7 @@ export function adicionarJuncao(tabelaPaiId, conexaoIdx) {
 }
 
 export function adicionarColuna() {
+    //alert('adicionarColuna')
     const tableIdx = document.getElementById('select-col-tabela').value;
     const fieldVal = document.getElementById('select-col-campo').value;
     const agg = document.getElementById('select-col-agregacao').value;
@@ -162,6 +184,7 @@ export function removerColuna(index) {
 }
 
 export function adicionarFiltro() {
+    //alert('adicionarFiltro')
     const tableIdx = document.getElementById('select-filtro-tabela').value;
     const fieldVal = document.getElementById('select-filtro-campo').value;
     const operador = document.getElementById('select-filtro-operador').value;
@@ -188,11 +211,14 @@ export function removerFiltro(index) {
 }
 
 export function isTabelaJaAdicionada(caminhoPai, campoRel) {
+    ////alert('isTabelaJaAdicionada')
     const check = caminhoPai + campoRel + "__";
+    //alert(`de isTabelaJaAdicionada, check: ${check}`)
     return estadoGlobal.tabelasAtivas.some(t => t.caminho === check);
 }
 
 export function atualizarSelectCampos(tabelaIdx, idSelectAlvo, idBtn) {
+    //alert('atualizarSelectCampos')
     const selectAlvo = document.getElementById(idSelectAlvo);
     const btn = document.getElementById(idBtn);
     selectAlvo.innerHTML = '<option value="" disabled selected>Selecione...</option>';
@@ -214,6 +240,7 @@ export function atualizarSelectCampos(tabelaIdx, idSelectAlvo, idBtn) {
 }
 
 export function renderizarTudo() {
+    //alert('renderizarTudo')
     renderizarEstruturaTabelas();
 
     const hasTables = estadoGlobal.tabelasAtivas.length > 0;
@@ -242,6 +269,7 @@ export function renderizarTudo() {
 }
 
 export function renderizarEstruturaTabelas() {
+    //alert('renderizarEstruturaTabelas')
     const container = document.getElementById('lista-tabelas');
     container.innerHTML = '';
 
@@ -251,6 +279,9 @@ export function renderizarEstruturaTabelas() {
 
         let btnsHtml = '';
         if (tab.conexoes_disponiveis.length > 0) {
+            console.log(tab);
+            console.log(tab.conexoes_disponiveis)
+            
             btnsHtml = `<div class="d-flex align-items-center mt-2 mt-md-0"><small class="text-muted mr-2">Conectar:</small>`;
             tab.conexoes_disponiveis.forEach((conn, idx) => {
                 const disabled = isTabelaJaAdicionada(tab.caminho, conn.campo_relacao) ? 'disabled' : '';
@@ -260,13 +291,18 @@ export function renderizarEstruturaTabelas() {
             btnsHtml += `</div>`;
         }
 
-        div.innerHTML = `<div><span class="badge badge-primary mr-2">${tab.tipo}</span><span class="font-weight-bold">${tab.nome_amigavel}</span>
-                        ${tab.caminho ? `<small class="text-muted ml-2">(via <code>${tab.caminho.slice(0, -2)}</code>)</small>` : ''}</div>${btnsHtml}`;
+        div.innerHTML = `
+            <div>
+                <span class="badge badge-primary mr-2">${tab.tipo}</span>
+                <span class="font-weight-bold">${tab.nome_amigavel}</span>
+                    ${tab.caminho ? `<small class="text-muted ml-2">(via <code>${tab.caminho.slice(0, -2)}</code>)</small>` : ''}
+                </div>${btnsHtml}`;
         container.appendChild(div);
     });
 }
 
 export function atualizarOpcoesSelect(idSelect) {
+    //alert('atualizarOpcoesSelect')
     const select = document.getElementById(idSelect);
     select.innerHTML = '';
     estadoGlobal.tabelasAtivas.forEach((tab, index) => {
@@ -282,6 +318,7 @@ export function atualizarOpcoesSelect(idSelect) {
 }
 
 export function renderizarColunasSelecionadas() {
+    //alert('renderizarColunasSelecionadas')
     const container = document.getElementById('lista-colunas-selecionadas');
     const msg = document.getElementById('msg-sem-colunas');
     container.innerHTML = '';
@@ -309,6 +346,7 @@ export function renderizarColunasSelecionadas() {
 }
 
 export function renderizarFiltros() {
+    //alert('renderizarFiltros')
     const tbody = document.getElementById('tbody-filtros');
     const containerTabela = document.getElementById('container-tabela-filtros');
     const msg = document.getElementById('msg-sem-filtros');
@@ -329,6 +367,7 @@ export function renderizarFiltros() {
 }
 
 export function renderizarJson() {
+    //alert('renderizarJson')
     const payload = {
         fonte_principal: estadoGlobal.modeloRaiz,
         colunas: estadoGlobal.colunasEscolhidas.map(c => ({ campo: c.path_final, label: c.label, agregacao: c.agregacao })),
