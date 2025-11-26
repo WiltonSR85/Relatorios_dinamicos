@@ -4,6 +4,9 @@ from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_POST
 from django.shortcuts import render
 from .utils import ConstrutorHTML
+from .models import Relatorio
+from django.utils.encoding import force_str
+from django.views.decorators.csrf import csrf_exempt
 from setup.esquema import esquema_bd
 from weasyprint import HTML
 
@@ -21,6 +24,7 @@ def editor(request):
 
 
 @require_POST
+@csrf_exempt
 def gerar_pdf(request):
     try:
         dados_recebidos = json.loads(request.body.decode('utf-8'))
@@ -38,3 +42,31 @@ def gerar_pdf(request):
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="relatorio.pdf"'
     return response
+
+@csrf_exempt
+def salvar_relatorio(request):
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método não permitido'}, status=405)
+
+    try:
+        data = json.loads(force_str(request.body))
+
+        nome = data.get('nome')
+        html = data.get('html')
+
+        if not nome or not html:
+            return JsonResponse(
+                {'error': 'Campos obrigatórios ausentes: nome e html'},
+                status=400
+            )
+
+        modelo = Relatorio.objects.create(nome=nome, html=html)
+
+        return JsonResponse({'success': True, 'id': modelo.id})
+
+    except Exception as e:
+        logger.error(f"Erro ao salvar modelo de relatório: {e}")
+        return JsonResponse(
+            {'error': 'Erro interno ao salvar o modelo', 'detail': str(e)},
+            status=500
+        )

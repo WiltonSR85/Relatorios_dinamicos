@@ -3,13 +3,17 @@ import { criarElementoRelatorio, selecionarElemento, desselecionarTudo, deletarE
 import * as CC from './construtor-consulta.js';
 import { fontes } from './canvas.js';
 
+console.log("index.js carregado");
 
 window.addEventListener('DOMContentLoaded', () => {
     inicializarOuvintesPropriedades();
     CC.iniciarAplicacao();
     //CC.renderizarTudo();
 
-    document.getElementById("btn-salvar-modelo").addEventListener("click", salvarTemplateJson);
+    document.getElementById("btn-confirmar-salvar-modelo").addEventListener("click", function() {
+        console.log("Botão salvar modelo clicado");
+        salvarTemplateJson();
+    });
     document.getElementById("btn-gerar-relatorio").addEventListener("click", gerarRelatorioFinal);
     document.getElementById("btn-deletar-elemento").addEventListener('click', deletarElementoSelecionado);
 
@@ -225,5 +229,28 @@ btnEditor.addEventListener("click", () => {
 
 
 function salvarTemplateJson() {
-    console.log(obterEsquemaRelatorio());
+    console.log("Função salvarTemplateJson chamada");
+    const nome = document.getElementById('relatorio-nome').value || 'Relatório sem nome';
+    const html = getHTML();
+
+    fetch('/salvar_relatorio/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            nome: nome,
+            html: html
+        })
+    })
+    .then(resp => resp.json())
+    .then(data => {
+        if (data.success) {
+            alert('Modelo salvo com sucesso!');
+            $('#salvarModeloRelatorio').modal('hide'); // Fecha o modal (usando jQuery/Bootstrap)
+        } else {
+            alert('Erro ao salvar modelo: ' + (data.error || JSON.stringify(data)));
+        }
+    });
 }
