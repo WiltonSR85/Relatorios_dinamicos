@@ -13,3 +13,5 @@ staticfiles
 
 # Backup files # 
 *.bak 
+
+ *.sqlite3

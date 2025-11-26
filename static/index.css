@@ -1,0 +1,148 @@
+body {
+    background-color: #f0f2f5;
+    overflow: hidden;
+    height: 100vh;
+}
+
+/* --- LAYOUT PRINCIPAL --- */
+.container-construtor {
+    display: flex;
+    height: calc(100vh - 56px);
+}
+
+.barra-lateral-esquerda {
+    width: 250px;
+    background: white;
+    border-right: 1px solid #ddd;
+    padding: 15px;
+    overflow-y: auto;
+    z-index: 10;
+}
+
+.barra-lateral-direita {
+    width: 320px;
+    background: white;
+    border-left: 1px solid #ddd;
+    padding: 15px;
+    overflow-y: auto;
+    z-index: 10;
+}
+
+.area-canvas {
+    flex: 1;
+    background: #e9ecef;
+    padding: 40px;
+    overflow: auto;
+    display: flex;
+    justify-content: center;
+}
+
+/* Folha A4 */
+.pagina-a4 {
+    width: 794px;
+    min-height: 1123px;
+    background: white;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.pagina-a4 header, footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #d3c1c1cc;
+    font-size: 3rem;
+}
+
+.pagina-a4 header {
+    border-bottom: 2px solid black;
+}
+
+.pagina-a4 header::after {
+    content: 'CABEÇALHO';
+}
+
+.pagina-a4 footer {
+    border-top: 2px solid black;
+}
+
+.pagina-a4 footer::after {
+    content: 'RODAPÉ';
+}
+
+/* Componentes arrastáveis */
+.item-arrastavel {
+    padding: 10px;
+    margin-bottom: 10px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    cursor: grab;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s;
+}
+
+.item-arrastavel:hover {
+    background: #e2e6ea;
+    transform: translateX(5px);
+}
+
+.item-arrastavel i {
+    margin-right: 10px;
+    font-size: 1.2rem;
+}
+
+/* Elementos no canvas */
+
+
+
+.elemento-relatorio {
+    position: absolute;
+    border: 1px dashed transparent;
+    cursor: move;
+    box-sizing: border-box;
+}
+
+.elemento-relatorio.selecionado {
+    outline: 2px dashed #007bff;
+    outline-offset: 2px;
+    z-index: 100;
+}
+
+/* Conteúdos internos */
+.el-texto {
+    padding: 5px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
+
+.btn-align.ativo {
+    background-color: #6c757d;
+    color: white;
+    border-color: #6c757d;
+}
+
+input[type="color"].form-control-sm {
+    padding: 2px;
+    height: 31px;
+}
+
+
+/* --- ESTILOS DO QUERY BUILDER (Dentro do Modal) --- */
+.modal-xl-customizado {
+    max-width: 95%;
+}
+
+.oculto-custom {
+    display: none !important;
+}
+
+pre {
+    background: #212529;
+    color: #2ecc71;
+    padding: 10px;
+    border-radius: 6px;
+    max-height: 200px;
+    overflow: auto;
+}

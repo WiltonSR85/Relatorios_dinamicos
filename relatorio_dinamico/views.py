@@ -1,16 +1,20 @@
 import json
 import logging
-from io import BytesIO
-from pathlib import Path
-from django.conf import settings
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_POST
-from django.templatetags.static import static
-from django.utils.html import escape
 from django.shortcuts import render
-from django.template.loader import render_to_string
+from .utils import ConstrutorHTML
+from setup.esquema import esquema_bd
+from weasyprint import HTML
 
 logger = logging.getLogger(__name__)
+
+def index(request):
+    return render(request, 'index.html')
+
+def retornar_esquema(request):
+    return JsonResponse(esquema_bd)
+
 
 def editor(request):
     return render(request, 'editor.html')
@@ -19,52 +23,15 @@ def editor(request):
 @require_POST
 def gerar_pdf(request):
     try:
-        from weasyprint import HTML
-    except Exception as e:
-        return JsonResponse({'error': 'WeasyPrint não disponível', 'detail': str(e)}, status=500)
-
-    try:
-        payload = json.loads(request.body.decode('utf-8'))
+        dados_recebidos = json.loads(request.body.decode('utf-8'))
     except Exception as e:
         return JsonResponse({'error': 'JSON inválido', 'detail': str(e)}, status=400)
 
-    elements = payload.get('elements', [])
-    page = payload.get('page') or {}
-    page_w = int(page.get('width') or  (210*96/25.4))
-    page_h = int(page.get('height') or (297*96/25.4))
-
-    css_url = request.build_absolute_uri(static('editor.css'))
-
-    # dados simples para header/footer (sem HTML na view)
-    header_logo = 'LOGO'
-    header_title = 'Serviço de Atendimento - Relatório'
-    footer_text = 'Rodapé padrão - contato: (xx) xxxx-xxxx'
-    footer_page = 'Página 1'
-
-    # passa apenas os elementos como dados (x, y, content) — sem gerar HTML na view
-    content_items = []
-    for el in elements:
-        x = int(el.get('x', 0))
-        y = int(el.get('y', 0))
-        content = escape(el.get('content', ''))
-        content_items.append({'x': x, 'y': y, 'content': content})
-
-    context = {
-        'css_url': css_url,
-        'header_logo': header_logo,
-        'header_title': header_title,
-        'footer_text': footer_text,
-        'footer_page': footer_page,
-        'content_items': content_items,
-        'page_w': page_w,
-        'page_h': page_h,
-    }
-
-    # renderiza o HTML a partir do template (todo o markup fica no template)
-    html = render_to_string('pdf_template.html', context)
+    html = dados_recebidos.get('html')
+    html_final = ConstrutorHTML.inserir_dados_no_html(esquema_bd, html)
 
     try:
-        pdf = HTML(string=html, base_url=request.build_absolute_uri('/')).write_pdf()
+        pdf = HTML(string=html_final, base_url=request.build_absolute_uri('/')).write_pdf()
     except Exception as e:
         return JsonResponse({'error': 'Erro ao gerar PDF', 'detail': str(e)}, status=500)
 
