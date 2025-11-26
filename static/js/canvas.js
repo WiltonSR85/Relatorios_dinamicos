@@ -46,50 +46,17 @@ export function deletarElementoSelecionado() {
     } 
 }
 
-export function criarElementoRelatorio(tipo, x, y) {
+export function criarElementoRelatorio(tipo, x, y, container) {
     let el;
     
     if (tipo === 'texto') {
-        el = document.createElement('div');
-        el.classList.add('el-texto'); 
-        el.innerHTML = '<div style="margin:auto;">Texto editável</div>';
-        el.style.fontSize = '14px'; el.style.color = '#000';
-        el.style.width = '200px';
-        el.style.height = '50px';
-        el.style.display = "flex";
-        el.style.padding = '0';
+        el = criarTexto();
     } else if (tipo === 'h1') {
-        el = document.createElement('h1');
-        el.innerText = 'Título 1';
-        el.style.width = '200px';
-        el.style.height = '50px';
-        el.style.textAlign = 'center';
+        el = criarH1();
     } else if (tipo === 'h2') {
-        el = document.createElement('h2');
-        el.innerText = 'Título 2';
-        el.style.width = '200px';
-        el.style.height = '50px';
-        el.style.textAlign = 'center';
+        el = criarH2();
     } else if (tipo === 'tabela') {
-        el = document.createElement('table');
-        el.style.borderCollapse = 'collapse';
-        el.innerHTML = `
-            <thead>
-                <tr>
-                    <th>Coluna 1</div></th>
-                    <th>Coluna 2</div></th>
-                    <th>Coluna 3</div></th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>{}</td>
-                    <td>{}</td>
-                    <td>{}</td>
-                </tr>
-            </tbody>
-        `;
-        el.dataset.configConsulta = "{}";
+        el = criarTabela();
     } 
     
     el.classList.add('elemento-relatorio');
@@ -109,8 +76,66 @@ export function criarElementoRelatorio(tipo, x, y) {
     else 
         tornarElementoRedimencionavel(objetoInteract);
     
-    document.getElementById('canvas-pagina').appendChild(el);
+    container.appendChild(el);
+    
     selecionarElemento(el);
+}
+
+function criarTexto(){
+    const el = document.createElement('div');
+    el.classList.add('el-texto'); 
+    el.innerHTML = '<div style="margin:auto;">Texto editável</div>';
+    el.style.fontSize = '14px'; el.style.color = '#000';
+    el.style.width = '200px';
+    el.style.height = '50px';
+    el.style.display = "flex";
+    el.style.padding = '0';
+
+    return el;
+}
+
+function criarH1(){
+    const el = document.createElement('h1');
+    el.innerText = 'Título 1';
+    el.style.width = '200px';
+    el.style.height = '50px';
+    el.style.textAlign = 'center';
+
+    return el;
+}
+
+function criarH2(){
+    const el = document.createElement('h2');
+    el.innerText = 'Título 2';
+    el.style.width = '200px';
+    el.style.height = '50px';
+    el.style.textAlign = 'center';
+
+    return el;
+}
+
+function criarTabela(){
+    const el = document.createElement('table');
+    el.style.borderCollapse = 'collapse';
+    el.innerHTML = `
+        <thead>
+            <tr>
+                <th>Coluna 1</div></th>
+                <th>Coluna 2</div></th>
+                <th>Coluna 3</div></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{}</td>
+                <td>{}</td>
+                <td>{}</td>
+            </tr>
+        </tbody>
+    `;
+    el.dataset.configConsulta = "{}";
+
+    return el;
 }
 
 export function atualizarPainelPropriedades() {

@@ -4,7 +4,6 @@ body {
     height: 100vh;
 }
 
-/* --- LAYOUT PRINCIPAL --- */
 .container-construtor {
     display: flex;
     height: calc(100vh - 56px);
@@ -39,35 +38,45 @@ body {
 
 /* Folha A4 */
 .pagina-a4 {
-    width: 794px;
-    min-height: 1123px;
+    display: flex;
+    flex-direction: column;
     background: white;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
     position: relative;
+
+    width: 210mm;
+    height: 297mm;
 }
 
 .pagina-a4 header, footer {
     display: flex;
     justify-content: center;
     align-items: center;
-    color: #d3c1c1cc;
-    font-size: 3rem;
+    height: 10%;
+}
+
+.pagina-a4 main {
+    height: 80%;
 }
 
 .pagina-a4 header {
-    border-bottom: 2px solid black;
+    border-bottom: 1px solid #d3c1c1cc;
 }
 
 .pagina-a4 header::after {
     content: 'CABEÇALHO';
+    color: #d3c1c1cc;
+    font-size: 2rem;
 }
 
 .pagina-a4 footer {
-    border-top: 2px solid black;
+    border-top: 1px solid #d3c1c1cc;
 }
 
 .pagina-a4 footer::after {
     content: 'RODAPÉ';
+    color: #d3c1c1cc;
+    font-size: 2rem;
 }
 
 /* Componentes arrastáveis */
@@ -94,8 +103,6 @@ body {
 }
 
 /* Elementos no canvas */
-
-
 
 .elemento-relatorio {
     position: absolute;

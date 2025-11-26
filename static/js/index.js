@@ -10,10 +10,13 @@ window.addEventListener('DOMContentLoaded', () => {
     CC.iniciarAplicacao();
     //CC.renderizarTudo();
 
-    document.getElementById("btn-confirmar-salvar-modelo").addEventListener("click", function() {
-        console.log("Botão salvar modelo clicado");
-        salvarTemplateJson();
+    document.querySelector("#btn-abrir-editor").addEventListener("click", () => {
+        const navPreview = document.getElementsByClassName('area-canvas')[0];
+        navPreview.children[0].classList.remove('oculto-custom');
+        navPreview.children[1].classList.add('oculto-custom');
     });
+
+    document.getElementById("btn-confirmar-salvar-modelo").addEventListener("click", salvarModeloRelatorio);
     document.getElementById("btn-gerar-relatorio").addEventListener("click", gerarRelatorioFinal);
     document.getElementById("btn-deletar-elemento").addEventListener('click', deletarElementoSelecionado);
 
@@ -64,7 +67,9 @@ window.addEventListener('DOMContentLoaded', () => {
     paginaCanvas.addEventListener("drop", (e) => soltar(e));
 
     paginaCanvas.addEventListener('mousedown', (e) => {
-        if (e.target.id === 'canvas-pagina') 
+        const elementoPai = e.target.parentElement;
+        console.log(elementoPai);
+        if (elementoPai.id === 'canvas-pagina') 
             desselecionarTudo();
         else { 
             const el = e.target.closest('.elemento-relatorio'); 
@@ -101,46 +106,20 @@ function soltar(evento) {
     evento.preventDefault();
     const tipo = evento.dataTransfer.getData("tipo");
     const rect = document.getElementById('canvas-pagina').getBoundingClientRect();
-    criarElementoRelatorio(tipo, evento.clientX - rect.left, evento.clientY - rect.top);
+
+    const alvo = evento.target;
+    let conteinerElemento;
+
+    if(alvo.closest("#header")){
+        conteinerElemento = alvo.closest("#header");
+    } else if(alvo.closest("#main")){
+        conteinerElemento = alvo.closest("#main");
+    } else if(alvo.closest("#footer")){
+        conteinerElemento = alvo.closest("#footer");
+    }
+    
+    criarElementoRelatorio(tipo, evento.clientX - rect.left, evento.clientY - rect.top, conteinerElemento);
 }
-
-function obterEsquemaRelatorio() {
-    return Array.from(document.querySelectorAll('.elemento-relatorio')).map(el => {
-        const style = window.getComputedStyle(el);
-
-        // Extrai posição real considerando transform
-        let left = parseFloat(el.style.left) || 0;
-        let top = parseFloat(el.style.top) || 0;
-        let x = parseFloat(el.dataset.x) || 0;
-        let y = parseFloat(el.dataset.y) || 0;
-
-        // Se houver transform, some ao left/top
-        const transform = style.transform;
-        if (transform && transform !== 'none') {
-            const match = transform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
-            if (match) {
-                x = parseFloat(match[1]);
-                y = parseFloat(match[2]);
-            }
-        }
-
-        return {
-            id: el.id,
-            type: el.dataset.tipo,
-            style: {
-                left: (left + x) + 'px',
-                top: (top + y) + 'px',
-                width: el.style.width, height: el.style.height,
-                fontSize: style.fontSize, fontWeight: style.fontWeight,
-                color: style.color, backgroundColor: style.backgroundColor,
-                border: style.border
-            },
-            content: el.dataset.tipo === 'texto' ? el.innerText : null,
-            query: el.dataset.tipo === 'tabela' ? JSON.parse(el.dataset.queryConfig || "{}") : null
-        };
-    });
-}
-
 
 function getCookie(name) {
     const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
@@ -148,8 +127,6 @@ function getCookie(name) {
 }
 
 async function gerarRelatorioFinal() {
-    // envia posições relativas ao topo/esquerda da FOLHA (reportCanvas)
-    const items = obterEsquemaRelatorio();
     const csrftoken = getCookie('csrftoken');
 
     const resp = await fetch('/gerar_pdf/', {
@@ -160,7 +137,6 @@ async function gerarRelatorioFinal() {
             'X-CSRFToken': csrftoken         // header exigido pelo Django CSRF
         },
         body: JSON.stringify({
-            elementos: items,
             html: getHTML()
         })
     });
@@ -209,26 +185,18 @@ function getHTML(){
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <style>
+                @page { size: A4; }
                 .elemento-relatorio { position: absolute; }
-                .pagina-a4 { width: 794px; min-height: 1123px; position: relative; }
             </style>
         </head>
         <body>
-            ${document.getElementById('canvas-pagina').outerHTML}
+            ${document.getElementById('canvas-pagina').innerHTML}
         </body>
         </html>
     `;    
 }
 
-let btnEditor = document.querySelector("#btn-abrir-editor");
-btnEditor.addEventListener("click", () => {
-    const navPreview = document.getElementsByClassName('area-canvas')[0];
-    navPreview.children[0].classList.remove('oculto-custom');
-    navPreview.children[1].classList.add('oculto-custom');
-});
-
-
-function salvarTemplateJson() {
+function salvarModeloRelatorio() {
     console.log("Função salvarTemplateJson chamada");
     const nome = document.getElementById('relatorio-nome').value || 'Relatório sem nome';
     const html = getHTML();
