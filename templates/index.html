@@ -22,7 +22,7 @@
                 <i class="bi bi-save"></i> Salvar modelo
             </button>
             <button class="btn btn-primary btn-sm" id="btn-gerar-relatorio">
-                <i class="bi bi-printer"></i> Gerar PDF
+                <i class="bi bi-printer"></i> Visualizar relatório
             </button>
         </div>
     </nav>
@@ -31,15 +31,20 @@
 
         <div class="barra-lateral-esquerda">
             <h6 class="text-muted font-weight-bold text-uppercase small mb-3">Componentes</h6>
+            <div class="item-arrastavel" draggable="true" data-tipo="h1"><i class="bi bi-type-h1 text-success"></i> Título 1</div>
+            <div class="item-arrastavel" draggable="true" data-tipo="h2"><i class="bi bi-type-h2 text-success"></i> Título 2</div>
             <div class="item-arrastavel" draggable="true" data-tipo="texto"><i class="bi bi-fonts text-primary"></i> Texto livre</div>
             <div class="item-arrastavel" draggable="true" data-tipo="tabela"><i class="bi bi-table text-success"></i> Tabela de dados</div>
 
-            <div class="alert alert-info small mt-4"><i class="bi bi-info-circle"></i> Arraste para o papel ao lado.
+            <div class="alert alert-info small mt-4"><i class="bi bi-info-circle"></i> Arraste um componente para o papel ao lado.
             </div>
         </div>
 
         <div class="area-canvas">
-            <div id="canvas-pagina" class="pagina-a4 dropzone"></div>
+            <div id="canvas-pagina" class="pagina-a4 dropzone">
+                <header style="height:150px;"></header>
+                <footer style="height:150px; position: absolute; bottom: 0; left:0; right:0;"></footer>
+            </div>
             <div id="ver-pdf" class="oculto-custom"></div>
         </div>
 
@@ -75,7 +80,7 @@
                 </div>
 
                 <div id="grupo-prop-conteudo-texto" class="form-group mb-2 oculto-custom">
-                    <label class="small font-weight-bold">Conteúdo</label>
+                    <label for="prop-texto-conteudo" class="small font-weight-bold">Conteúdo</label>
                     <textarea id="prop-texto-conteudo" class="form-control form-control-sm" rows="3"></textarea>
                 </div>
 
@@ -108,8 +113,9 @@
                 </div>
                 
                 <div class="form-row mb-2">
-                    <div class="col-6"><label class="small">Fundo</label><input type="color" id="prop-cor-fundo" class="form-control form-control-sm"></div>
-                    <div class="col-6"><label class="small">Texto</label><input type="color" id="prop-cor-texto" class="form-control form-control-sm"></div>
+                    <div class="col-4"><label class="small">Fundo</label><input type="color" id="prop-cor-fundo" class="form-control form-control-sm"></div>
+                    <div class="col-4"><label class="small">Texto</label><input type="color" id="prop-cor-texto" class="form-control form-control-sm"></div>
+                    <div class="col-4"><label class="small">Cor da borda</label><input type="color" id="prop-cor-borda" class="form-control form-control-sm"></div>
                 </div>
                 <div class="form-row mb-2">
                     <div class="col-6"><label class="small">Tam. (px)</label><input type="number" id="prop-tamanho-fonte"
@@ -177,7 +183,7 @@
                                     <div class="card shadow-sm h-100 border-success"
                                         style="border-top: 4px solid #198754;">
                                         <div class="card-header bg-white text-success">
-                                            <i class="bi bi-table"></i> 2. Colunas e Métricas
+                                            <i class="bi bi-table"></i> 2. Colunas e métricas
                                         </div>
                                         <div class="card-body">
                                             <div class="form-row align-items-end mb-3">

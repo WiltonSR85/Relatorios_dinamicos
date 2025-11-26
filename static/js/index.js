@@ -188,6 +188,7 @@ async function gerarRelatorioFinal() {
         const navPreview = document.getElementsByClassName('area-canvas')[0];
         navPreview.children[0].classList.add('oculto-custom');
         navPreview.children[1].classList.remove('oculto-custom');
+        navPreview.children[1].innerHTML = '';
         navPreview.children[1].append(preview);
 
     } else {

@@ -58,8 +58,21 @@ export function criarElementoRelatorio(tipo, x, y) {
         el.style.height = '50px';
         el.style.display = "flex";
         el.style.padding = '0';
+    } else if (tipo === 'h1') {
+        el = document.createElement('h1');
+        el.innerText = 'Título 1';
+        el.style.width = '200px';
+        el.style.height = '50px';
+        el.style.textAlign = 'center';
+    } else if (tipo === 'h2') {
+        el = document.createElement('h2');
+        el.innerText = 'Título 2';
+        el.style.width = '200px';
+        el.style.height = '50px';
+        el.style.textAlign = 'center';
     } else if (tipo === 'tabela') {
-        el = document.createElement('table')
+        el = document.createElement('table');
+        el.style.borderCollapse = 'collapse';
         el.innerHTML = `
             <thead>
                 <tr>
@@ -101,7 +114,8 @@ export function criarElementoRelatorio(tipo, x, y) {
 }
 
 export function atualizarPainelPropriedades() {
-    const painel = document.getElementById('painel-propriedades'), vazio = document.getElementById('propriedades-vazio');
+    const painel = document.getElementById('painel-propriedades'); 
+    const vazio = document.getElementById('propriedades-vazio');
     
     if (!elementoSelecionado) { 
         painel.classList.add('oculto-custom'); 

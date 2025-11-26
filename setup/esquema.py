@@ -117,6 +117,11 @@ esquema_bd = {
         "nome_amigavel": "Setor",
         "campo_relacao": "base_setor",
         "model_destino": "Setor"
+      },
+      {
+        "nome_amigavel": "Unidade",
+        "campo_relacao": "unidades_operacionais",
+        "model_destino": "Unidade"
       }
     ]
   },
@@ -144,7 +149,7 @@ esquema_bd = {
     "label_tabela": "Unidade",
     "app_model": "unidade.Unidade",
     "campos": [
-      { "label": "Nome", "valor": "nome", "tipo": "string" },
+      { "label": "Nome da unidade", "valor": "nome", "tipo": "string" },
       { "label": "Tipo", "valor": "tipo", "tipo": "string" },
       { "label": "Placa", "valor": "placa", "tipo": "string" },
       { "label": "Modelo", "valor": "modelo", "tipo": "string" },
@@ -153,7 +158,7 @@ esquema_bd = {
     "conexoes": [
       {
         "nome_amigavel": "Base",
-        "campo_relacao": "central",
+        "campo_relacao": "base",
         "model_destino": "Base"
       },
       {

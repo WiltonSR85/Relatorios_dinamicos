@@ -46,6 +46,30 @@ body {
     position: relative;
 }
 
+.pagina-a4 header, footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #d3c1c1cc;
+    font-size: 3rem;
+}
+
+.pagina-a4 header {
+    border-bottom: 2px solid black;
+}
+
+.pagina-a4 header::after {
+    content: 'CABEÇALHO';
+}
+
+.pagina-a4 footer {
+    border-top: 2px solid black;
+}
+
+.pagina-a4 footer::after {
+    content: 'RODAPÉ';
+}
+
 /* Componentes arrastáveis */
 .item-arrastavel {
     padding: 10px;
@@ -70,6 +94,9 @@ body {
 }
 
 /* Elementos no canvas */
+
+
+
 .elemento-relatorio {
     position: absolute;
     border: 1px dashed transparent;
