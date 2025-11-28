@@ -9,6 +9,7 @@ from django.utils.encoding import force_str
 from django.views.decorators.csrf import csrf_exempt
 from setup.esquema import esquema_bd
 from weasyprint import HTML
+#import bleach # ainda não instalado; será usado para limpar o HTML recebido e evitar XSS
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +34,10 @@ def gerar_pdf(request):
 
     html = dados_recebidos.get('html')
     html_final = ConstrutorHTML.inserir_dados_no_html(esquema_bd, html)
+
+    with open('html/relatorio.html', 'w', encoding='utf-8') as arquivo:
+        arquivo.write(html_final)
+        print("novo html salvo")
 
     try:
         pdf = HTML(string=html_final, base_url=request.build_absolute_uri('/')).write_pdf()

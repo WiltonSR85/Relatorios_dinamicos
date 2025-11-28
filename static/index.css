@@ -4,6 +4,10 @@ body {
     height: 100vh;
 }
 
+header, main, footer {
+    position: relative;
+}
+
 .container-construtor {
     display: flex;
     height: calc(100vh - 56px);
@@ -44,19 +48,19 @@ body {
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
     position: relative;
 
+    height: 140mm;
     width: 210mm;
-    height: 297mm;
 }
 
 .pagina-a4 header, footer {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 10%;
+    height: 15%;
 }
 
 .pagina-a4 main {
-    height: 80%;
+    height: 70%;
 }
 
 .pagina-a4 header {

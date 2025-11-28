@@ -105,7 +105,6 @@ function permitirSoltar(evento) {
 function soltar(evento) {
     evento.preventDefault();
     const tipo = evento.dataTransfer.getData("tipo");
-    const rect = document.getElementById('canvas-pagina').getBoundingClientRect();
 
     const alvo = evento.target;
     let conteinerElemento;
@@ -118,6 +117,8 @@ function soltar(evento) {
         conteinerElemento = alvo.closest("#footer");
     }
     
+    const rect = conteinerElemento.getBoundingClientRect();
+
     criarElementoRelatorio(tipo, evento.clientX - rect.left, evento.clientY - rect.top, conteinerElemento);
 }
 
@@ -186,6 +187,8 @@ function getHTML(){
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <style>
                 @page { size: A4; }
+                header, main, footer { position: relative; }
+                header{ height: 100px; }
                 .elemento-relatorio { position: absolute; }
             </style>
         </head>
