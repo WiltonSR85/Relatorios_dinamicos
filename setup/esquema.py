@@ -1,14 +1,14 @@
 esquema_bd = {
   "Chamado": { 
-    "label_tabela": "Chamado",
     "app_model": "chamado.Chamado",
     "campos": [
-      { "label": "Motivo", "valor": "motivo", "tipo": "string" },
-      { "label": "Status", "valor": "status", "tipo": "string" },
-      { "label": "Número de vítimas", "valor": "numero_vitimas", "tipo": "number" },
-      { "label": "É incidente?", "valor": "inicidente", "tipo": "boolean" },
-      { "label": "Cidade (Ocorrência)", "valor": "cidade", "tipo": "string" },
-      { "label": "Bairro (Ocorrência)", "valor": "bairro", "tipo": "string" }
+      { "rotulo": "ID", "valor": "id", "tipo": "int"},
+      { "rotulo": "Motivo", "valor": "motivo", "tipo": "string" },
+      { "rotulo": "Status", "valor": "status", "tipo": "string" },
+      { "rotulo": "Número de vítimas", "valor": "numero_vitimas", "tipo": "number" },
+      { "rotulo": "É incidente?", "valor": "incidente", "tipo": "bool" },
+      { "rotulo": "Cidade (Ocorrência)", "valor": "cidade", "tipo": "string" },
+      { "rotulo": "Bairro (Ocorrência)", "valor": "bairro", "tipo": "string" }
     ],
     "conexoes": [
       {
@@ -26,11 +26,11 @@ esquema_bd = {
         "campo_relacao": "atendimento_chamado",
         "model_destino": "AtendimentoPessoa"
       },
-      {
-        "nome_amigavel": "TramiteChamado",
-        "campo_relacao": "tramite_chamado",
-        "model_destino": "TramiteChamado"
-      },
+      #{
+        #"nome_amigavel": "TramiteChamado",
+        #"campo_relacao": "tramite_chamado",
+        #"model_destino": "TramiteChamado"
+      #},
       {
         "nome_amigavel": "UnidadeChamado",
         "campo_relacao": "unidade_chamado",
@@ -39,13 +39,13 @@ esquema_bd = {
     ]
   },
   "Pessoa": {
-    "label_tabela": "Pessoa",
     "app_model": "pessoa.Pessoa",
     "campos": [
-      { "label": "Nome completo", "valor": "nome", "tipo": "string" },
-      { "label": "Data de nascimento", "valor": "dataNascimentoReal", "tipo": "date" },
-      { "label": "Sexo", "valor": "sexo", "tipo": "string" },
-      { "label": "Telefone celular", "valor": "telefoneCelular", "tipo": "string" }
+      { "rotulo": "ID", "valor": "id", "tipo": "int"},
+      { "rotulo": "Nome completo", "valor": "nome", "tipo": "string" },
+      { "rotulo": "Data de nascimento", "valor": "dataNascimentoReal", "tipo": "date" },
+      { "rotulo": "Sexo", "valor": "sexo", "tipo": "string" },
+      { "rotulo": "Telefone celular", "valor": "telefoneCelular", "tipo": "string" }
     ],
     "conexoes": [
       {
@@ -66,19 +66,19 @@ esquema_bd = {
     ]
   },
   "AtendimentoPessoa": {
-    "label_tabela": "Atendimento",
     "app_model": "chamado.AtendimentoPessoa",
     "campos": [
-      { "label": "Queixa principal", "valor": "queixa", "tipo": "text" },
-      { "label": "Risco classificado", "valor": "risco", "tipo": "string" },
-      { "label": "Pressão arterial (PA)", "valor": "pa", "tipo": "string" },
-      { "label": "Pulso", "valor": "pulso", "tipo": "string" },
-      { "label": "Saturação O2", "valor": "so2", "tipo": "string" },
-      { "label": "Glicemia", "valor": "glicemia", "tipo": "string" },
-      { "label": "Glasgow", "valor": "glasgow", "tipo": "string" },
-      { "label": "Destino do paciente", "valor": "destinoPaciente", "tipo": "string" },
-      { "label": "Diagnóstico médico", "valor": "diagnosticoMedico", "tipo": "string" },
-      { "label": "Houve lesão traumática?", "valor": "lesaoTraumatica", "tipo": "boolean" }
+      { "rotulo": "ID", "valor": "id", "tipo": "int"},
+      { "rotulo": "Queixa principal", "valor": "queixa", "tipo": "string" },
+      { "rotulo": "Risco classificado", "valor": "risco", "tipo": "string" },
+      { "rotulo": "Pressão arterial (PA)", "valor": "pa", "tipo": "string" },
+      { "rotulo": "Pulso", "valor": "pulso", "tipo": "string" },
+      { "rotulo": "Saturação O2", "valor": "so2", "tipo": "string" },
+      { "rotulo": "Glicemia", "valor": "glicemia", "tipo": "string" },
+      { "rotulo": "Glasgow", "valor": "glasgow", "tipo": "string" },
+      { "rotulo": "Destino do paciente", "valor": "destinoPaciente", "tipo": "string" },
+      { "rotulo": "Diagnóstico médico", "valor": "diagnosticoMedico", "tipo": "string" },
+      { "rotulo": "Houve lesão traumática?", "valor": "lesaoTraumatica", "tipo": "bool" }
     ],
     "conexoes": [
       {
@@ -94,13 +94,13 @@ esquema_bd = {
     ]
   },
   "Base": {
-    "label_tabela": "Base",
     "app_model": "base.Base",
     "campos": [
-      { "label": "Nome da base", "valor": "nome", "tipo": "string" },
-      { "label": "Cidade", "valor": "cidade", "tipo": "string" },
-      { "label": "Estado (UF)", "valor": "uf", "tipo": "string" },
-      { "label": "Bairro", "valor": "bairro", "tipo": "string" }
+      { "rotulo": "ID", "valor": "id", "tipo": "int"},
+      { "rotulo": "Nome da base", "valor": "nome", "tipo": "string" },
+      { "rotulo": "Cidade", "valor": "cidade", "tipo": "string" },
+      { "rotulo": "Estado (UF)", "valor": "uf", "tipo": "string" },
+      { "rotulo": "Bairro", "valor": "bairro", "tipo": "string" }
     ],
     "conexoes": [
       {
@@ -126,11 +126,11 @@ esquema_bd = {
     ]
   },
   "Setor": {
-    "label_tabela": "Setor",
     "app_model": "setor.Setor",
     "campos": [
-      { "label": "Nome do setor", "valor": "nome", "tipo": "string" },
-      { "label": "Descrição", "valor": "descricao", "tipo": "text" }
+      { "rotulo": "ID", "valor": "id", "tipo": "int"},
+      { "rotulo": "Nome do setor", "valor": "name", "tipo": "string" },
+      { "rotulo": "Descrição", "valor": "descricao", "tipo": "string" }
     ],
     "conexoes": [
       {
@@ -146,14 +146,14 @@ esquema_bd = {
     ]
   },
   "Unidade": {
-    "label_tabela": "Unidade",
     "app_model": "unidade.Unidade",
     "campos": [
-      { "label": "Nome da unidade", "valor": "nome", "tipo": "string" },
-      { "label": "Tipo", "valor": "tipo", "tipo": "string" },
-      { "label": "Placa", "valor": "placa", "tipo": "string" },
-      { "label": "Modelo", "valor": "modelo", "tipo": "string" },
-      { "label": "Status Atual", "valor": "status", "tipo": "string" }
+      { "rotulo": "ID", "valor": "id", "tipo": "int"},
+      { "rotulo": "Nome da unidade", "valor": "nome", "tipo": "string" },
+      { "rotulo": "Tipo", "valor": "tipo", "tipo": "string" },
+      { "rotulo": "Placa", "valor": "placa", "tipo": "string" },
+      { "rotulo": "Modelo", "valor": "modelo", "tipo": "string" },
+      { "rotulo": "Status Atual", "valor": "status", "tipo": "string" }
     ],
     "conexoes": [
       {
@@ -169,11 +169,11 @@ esquema_bd = {
     ]
   },
   "UnidadeChamado": {
-    "label_tabela": "Alocação de unidade",
     "app_model": "chamado.UnidadeChamado",
     "campos": [
-      { "label": "Status no chamado", "valor": "status", "tipo": "string" },
-      { "label": "Data Alocação", "valor": "alocado_em", "tipo": "datetime" }
+      { "rotulo": "ID", "valor": "id", "tipo": "int"},
+      { "rotulo": "Status no chamado", "valor": "status", "tipo": "string" },
+      { "rotulo": "Data de alocação", "valor": "alocado_em", "tipo": "datetime" }
     ],
     "conexoes": [
       {
@@ -189,13 +189,11 @@ esquema_bd = {
     ]
   },
   "User": {
-    "label_tabela": "Usuário",
     "app_model": "django.contrib.auth.models.User",
     "campos": [
-      { "label": "Username", "valor": "username", "tipo": "string" },
-      { "label": "E-mail", "valor": "email", "tipo": "string" },
-      { "label": "Ativo?", "valor": "is_active", "tipo": "boolean" },
-      { "label": "Staff?", "valor": "is_staff", "tipo": "boolean" }
+      { "rotulo": "Username", "valor": "username", "tipo": "string" },
+      { "rotulo": "E-mail", "valor": "email", "tipo": "email" },
+      { "rotulo": "Está ativo?", "valor": "is_active", "tipo": "bool" },
     ],
     "conexoes": []
   }

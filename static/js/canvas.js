@@ -1,12 +1,6 @@
 import { rgbParaHex } from './uteis.js';
 import { tornarElementoArrastavel, tornarElementoRedimencionavel } from './interact-config.js';
-
-export const fontes = [
-    { valor: "'Segoe UI', Roboto, Helvetica, Arial, sans-serif", nome: "Padrão (Sans-serif)" },
-    { valor: "'Times New Roman', Times, serif", nome: "Times New Roman" },
-    { valor: "'Courier New', Courier, monospace", nome: "Courier New" },
-];
-
+import { fontes } from './uteis.js';
 
 let elementoSelecionado = null;
 
@@ -46,7 +40,7 @@ export function deletarElementoSelecionado() {
     } 
 }
 
-export function criarElementoRelatorio(tipo, x, y, container) {
+export function criarElementoRelatorio(tipo, x, y, container, dadosAdicionais = {}) {
     let el;
     
     if (tipo === 'texto') {
@@ -57,10 +51,11 @@ export function criarElementoRelatorio(tipo, x, y, container) {
         el = criarH2();
     } else if (tipo === 'tabela') {
         el = criarTabela();
-    } 
+    } else if (tipo === 'imagem'){
+        el = criarImagem(dadosAdicionais['src']);
+    }
     
     el.classList.add('elemento-relatorio');
-    el.id = `el-${Date.now()}`;
     el.dataset.tipo = tipo;
     el.style.left = `${x}px`; 
     el.style.top = `${y}px`;
@@ -69,15 +64,15 @@ export function criarElementoRelatorio(tipo, x, y, container) {
 
     const objetoInteract = interact(el);
     tornarElementoArrastavel(objetoInteract);
-    if(tipo == 'tabela')
+    if(tipo == 'tabela'){
         tornarElementoRedimencionavel(objetoInteract, {
             right: true, left: true, top: false, bottom: false
         });
-    else 
+    } else if (tipo !== 'imagem'){
         tornarElementoRedimencionavel(objetoInteract);
+    }
     
     container.appendChild(el);
-    
     selecionarElemento(el);
 }
 
@@ -138,23 +133,52 @@ function criarTabela(){
     return el;
 }
 
+export function criarImagem(src){
+    const el = document.createElement('img');
+    el.src = src;
+    el.style.maxHeight = '65px';
+
+    return el;
+}
+
+export function tornarComponentesDaTabelasRedimensionaveis(elementoTabela){
+    const cabeçalhos = elementoTabela.querySelectorAll('thead tr > th');
+    
+    cabeçalhos.forEach((elemento) => {
+        let objInt = interact(elemento);
+        tornarElementoRedimencionavel(objInt, {
+            left: false,
+            right: true,
+            bottom: true,
+            top: false
+        });
+    });
+}
+
 export function atualizarPainelPropriedades() {
     const painel = document.getElementById('painel-propriedades'); 
     const vazio = document.getElementById('propriedades-vazio');
     
     if (!elementoSelecionado) { 
-        painel.classList.add('oculto-custom'); 
-        vazio.classList.remove('oculto-custom'); 
+        painel.classList.add('d-none'); 
+        vazio.classList.remove('d-none'); 
         return; 
     }
 
-    painel.classList.remove('oculto-custom'); vazio.classList.add('oculto-custom');
+    painel.classList.remove('d-none'); 
+    vazio.classList.add('d-none');
 
     const tipo = elementoSelecionado.dataset.tipo;
-    document.getElementById('grupo-prop-conteudo-texto').classList.toggle('oculto-custom', tipo !== 'texto');
-    document.getElementById('grupo-prop-tabela').classList.toggle('oculto-custom', tipo !== 'tabela');
 
-    if (tipo === 'texto') {
+    let force = true;
+    if (tipo === 'texto' || tipo === 'h1' || tipo === 'h2'){
+        force = false;
+    }
+
+    document.getElementById('grupo-prop-conteudo-texto').classList.toggle('d-none', force);
+    document.getElementById('grupo-prop-tabela').classList.toggle('d-none', tipo !== 'tabela');
+
+    if (tipo === 'texto' || tipo === 'h1' || tipo === 'h2') {
         props.texto.value = elementoSelecionado.childNodes[0]?.nodeValue || elementoSelecionado.innerText;
     }
     props.tamanho.value = parseInt(window.getComputedStyle(elementoSelecionado).fontSize);
@@ -184,11 +208,14 @@ export function atualizarPainelPropriedades() {
 
 export function inicializarOuvintesPropriedades() {
     props.texto.addEventListener('input', (e) => { 
-        if (elementoSelecionado?.dataset.tipo === 'texto') { 
+        let tipo = elementoSelecionado?.dataset.tipo;
+        if (tipo === 'texto') { 
             const divTexto = elementoSelecionado.children[0];
             divTexto.innerText = e.target.value;
             divTexto.style.width = elementoSelecionado.style.width;
-        } 
+        } else if(tipo === 'h1' || tipo === 'h2'){
+            elementoSelecionado.innerText = e.target.value;
+        }
     });
     props.fundo.addEventListener('input', (e) => { 
         if (elementoSelecionado) 
@@ -213,14 +240,6 @@ export function inicializarOuvintesPropriedades() {
     props.borda.addEventListener('change', (e) => { 
         if (elementoSelecionado){
             const border = e.target.value;
-
-            if (elementoSelecionado.dataset.tipo == 'tabela'){
-                const filhos = elementoSelecionado.querySelectorAll('th, td');                
-                for(let f of filhos){
-                    f.style.border = border;
-                }
-            }
-
             elementoSelecionado.style.border = border;
         } 
     });

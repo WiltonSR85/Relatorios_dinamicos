@@ -1,43 +1,20 @@
 body {
     background-color: #f0f2f5;
-    overflow: hidden;
-    height: 100vh;
 }
 
-header, main, footer {
-    position: relative;
-}
-
-.container-construtor {
-    display: flex;
-    height: calc(100vh - 56px);
-}
-
-.barra-lateral-esquerda {
-    width: 250px;
+.barra-lateral {
     background: white;
     border-right: 1px solid #ddd;
-    padding: 15px;
-    overflow-y: auto;
-    z-index: 10;
-}
-
-.barra-lateral-direita {
-    width: 320px;
-    background: white;
-    border-left: 1px solid #ddd;
-    padding: 15px;
     overflow-y: auto;
     z-index: 10;
 }
 
 .area-canvas {
-    flex: 1;
     background: #e9ecef;
-    padding: 40px;
     overflow: auto;
     display: flex;
     justify-content: center;
+    flex: 1;
 }
 
 /* Folha A4 */
@@ -47,9 +24,12 @@ header, main, footer {
     background: white;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
     position: relative;
-
     height: 140mm;
     width: 210mm;
+}
+
+.pagina-a4 header, main, footer {
+    position: relative;
 }
 
 .pagina-a4 header, footer {
@@ -84,6 +64,7 @@ header, main, footer {
 }
 
 /* Componentes arrastáveis */
+
 .item-arrastavel {
     padding: 10px;
     margin-bottom: 10px;
@@ -122,6 +103,7 @@ header, main, footer {
 }
 
 /* Conteúdos internos */
+
 .el-texto {
     padding: 5px;
     white-space: pre-wrap;
@@ -134,19 +116,8 @@ header, main, footer {
     border-color: #6c757d;
 }
 
-input[type="color"].form-control-sm {
-    padding: 2px;
-    height: 31px;
-}
-
-
-/* --- ESTILOS DO QUERY BUILDER (Dentro do Modal) --- */
 .modal-xl-customizado {
     max-width: 95%;
-}
-
-.oculto-custom {
-    display: none !important;
 }
 
 pre {
@@ -156,4 +127,21 @@ pre {
     border-radius: 6px;
     max-height: 200px;
     overflow: auto;
+}
+
+table, th, td { 
+    border: 1px solid black; 
+    border-collapse: collapse; 
+}
+
+.container-imagens {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    height: 11rem;
+    gap: 0.5rem;
+    overflow-y: auto;
+}
+
+.logo-pdf {
+    max-height: 65px;
 }

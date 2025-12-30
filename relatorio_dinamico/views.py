@@ -1,17 +1,13 @@
 import json
-import logging
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_POST
 from django.shortcuts import render
-from .utils import ConstrutorHTML
+from .construtores import ConstrutorHTML, ConstrutorConsulta
 from .models import Relatorio
 from django.utils.encoding import force_str
-from django.views.decorators.csrf import csrf_exempt
 from setup.esquema import esquema_bd
 from weasyprint import HTML
-#import bleach # ainda não instalado; será usado para limpar o HTML recebido e evitar XSS
-
-logger = logging.getLogger(__name__)
+from django.core.exceptions import FieldError, ValidationError
 
 def index(request):
     return render(request, 'index.html')
@@ -19,13 +15,26 @@ def index(request):
 def retornar_esquema(request):
     return JsonResponse(esquema_bd)
 
-
 def editor(request):
     return render(request, 'editor.html')
 
+@require_POST
+def gerar_sql(request):
+    try:
+        configuracao_consulta = json.loads(request.body.decode('utf-8'))
+    except Exception as e:
+        return JsonResponse({'error': 'JSON inválido', 'detail': str(e)}, status=400)
+    
+    construtor_consulta = ConstrutorConsulta(esquema_bd, configuracao_consulta)
+    try:
+        queryset = construtor_consulta.criar_queryset()
+        sql = str(queryset.query)
+        return JsonResponse({'sql': sql})
+
+    except (FieldError, ValidationError) as e:
+        return JsonResponse({'error': 'Erro na construção da consulta', 'detail': str(e)}, status=400)
 
 @require_POST
-@csrf_exempt
 def gerar_pdf(request):
     try:
         dados_recebidos = json.loads(request.body.decode('utf-8'))
@@ -33,11 +42,14 @@ def gerar_pdf(request):
         return JsonResponse({'error': 'JSON inválido', 'detail': str(e)}, status=400)
 
     html = dados_recebidos.get('html')
-    html_final = ConstrutorHTML.inserir_dados_no_html(esquema_bd, html)
+    try:
+        html_final = ConstrutorHTML.inserir_dados_no_html(esquema_bd, html)
+    except (FieldError, ValidationError) as e:
+        return JsonResponse({'error': 'Erro na construção da consulta', 'detail': str(e)}, status=400)
 
-    with open('html/relatorio.html', 'w', encoding='utf-8') as arquivo:
+    """ with open('html/relatorio.html', 'w', encoding='utf-8') as arquivo:
         arquivo.write(html_final)
-        print("novo html salvo")
+        print("novo html salvo") """
 
     try:
         pdf = HTML(string=html_final, base_url=request.build_absolute_uri('/')).write_pdf()
@@ -48,7 +60,6 @@ def gerar_pdf(request):
     response['Content-Disposition'] = 'attachment; filename="relatorio.pdf"'
     return response
 
-@csrf_exempt
 def salvar_relatorio(request):
     if request.method != 'POST':
         return JsonResponse({'error': 'Método não permitido'}, status=405)
@@ -70,7 +81,6 @@ def salvar_relatorio(request):
         return JsonResponse({'success': True, 'id': modelo.id})
 
     except Exception as e:
-        logger.error(f"Erro ao salvar modelo de relatório: {e}")
         return JsonResponse(
             {'error': 'Erro interno ao salvar o modelo', 'detail': str(e)},
             status=500

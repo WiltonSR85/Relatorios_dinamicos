@@ -3,9 +3,6 @@ export function tornarElementoArrastavel(objetoInteract){
     objetoInteract.draggable({
         listeners: {
             move(evento) {
-                if (!evento.target.classList.contains('selecionado')){
-                    selecionarElemento(evento.target);
-                } 
                 const t = evento.target;
                 const x = (parseFloat(t.dataset.x) || 0) + evento.dx;
                 const y = (parseFloat(t.dataset.y) || 0) + evento.dy;

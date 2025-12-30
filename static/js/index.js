@@ -1,19 +1,20 @@
-//import { tornarElementoArrastavel } from './interact-config.js';
 import { criarElementoRelatorio, selecionarElemento, desselecionarTudo, deletarElementoSelecionado, inicializarOuvintesPropriedades } from './canvas.js';
 import * as CC from './construtor-consulta.js';
-import { fontes } from './canvas.js';
+import { fontes, tiposDeDadosEntrada, formatarSQL } from './uteis.js';
 
-console.log("index.js carregado");
+// URLs para comunicação com o backend
+const URL_SALVAR_RELATORIO = '/salvar_relatorio/';
+const URL_GERAR_PDF = '/gerar_pdf/';
+const URL_OBTER_SQL = '/obter_sql/';
 
 window.addEventListener('DOMContentLoaded', () => {
     inicializarOuvintesPropriedades();
     CC.iniciarAplicacao();
-    //CC.renderizarTudo();
 
     document.querySelector("#btn-abrir-editor").addEventListener("click", () => {
         const navPreview = document.getElementsByClassName('area-canvas')[0];
-        navPreview.children[0].classList.remove('oculto-custom');
-        navPreview.children[1].classList.add('oculto-custom');
+        navPreview.children[0].classList.remove('d-none');
+        navPreview.children[1].classList.add('d-none');
     });
 
     document.getElementById("btn-confirmar-salvar-modelo").addEventListener("click", salvarModeloRelatorio);
@@ -38,8 +39,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('lista-colunas-selecionadas').addEventListener('click', (e) => {
         const btn = e.target.closest('.btn-remover-col');
-        if (btn) 
+        if (btn) {
             CC.removerColuna(parseInt(btn.getAttribute('data-idx')));
+        }
     });
 
     document.getElementById('tbody-filtros').addEventListener('click', (e) => {
@@ -48,15 +50,65 @@ window.addEventListener('DOMContentLoaded', () => {
             CC.removerFiltro(parseInt(btn.getAttribute('data-idx')));
     });
 
+    document.getElementById('tbody-ordenacao').addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-remover-ordenacao');
+        if (btn) 
+            CC.removerOrdenacao(parseInt(btn.getAttribute('data-idx')));
+    });
+
     // Filtros e colunas 
-    document.getElementById('select-col-tabela').addEventListener('change', (e) => CC.atualizarSelectCampos(e.target.value, 'select-col-campo', 'btn-add-coluna'));
-    document.getElementById('select-col-campo').addEventListener('change', (e) => document.getElementById('btn-add-coluna').disabled = !e.target.value);
-    document.getElementById('btn-add-coluna').addEventListener('click', CC.adicionarColuna);
+    document.getElementById('select-col-tabela').addEventListener('change', (e) => {
+        CC.atualizarSelectCampos(e.target.value, 'select-col-campo', 'btn-add-coluna');
+    });
 
-    document.getElementById('select-filtro-tabela').addEventListener('change', (e) => CC.atualizarSelectCampos(e.target.value, 'select-filtro-campo', 'btn-add-filtro'));
-    document.getElementById('select-filtro-campo').addEventListener('change', (e) => document.getElementById('btn-add-filtro').disabled = !e.target.value);
-    document.getElementById('btn-add-filtro').addEventListener('click', CC.adicionarFiltro);
+    document.getElementById('select-col-campo').addEventListener('change', (e) => {
+        document.getElementById('btn-add-coluna').disabled = !e.target.value;
+    });
 
+    document.getElementById('btn-add-coluna').addEventListener('click', () => {
+        CC.adicionarColuna();
+        $("#collapseSQL").collapse('hide');
+    });
+
+    document.getElementById('select-filtro-tabela').addEventListener('change', (e) => {
+        CC.atualizarSelectCampos(e.target.value, 'select-filtro-campo', 'btn-add-filtro')
+    });
+    
+    document.getElementById('select-filtro-campo').addEventListener('change', (e) => {
+        document.getElementById('btn-add-filtro').disabled = !e.target.value;
+    });
+
+    // ajusta o tipo de entrada conforme o tipo de dado do campo selecionado
+    document.getElementById('select-filtro-campo').addEventListener('change', (e) => {
+        const tipoCampo = e.target.options[e.target.selectedIndex].getAttribute('data-tipo');
+        document.getElementById('input-filtro-valor').value = '';
+        document.getElementById('input-filtro-valor').type = tiposDeDadosEntrada[tipoCampo] || 'text';
+    });
+    
+    document.getElementById('btn-add-filtro').addEventListener('click', () => {
+        CC.adicionarFiltro();
+        $("#collapseSQL").collapse('hide');
+    });
+
+    document.getElementById('select-ordenacao-tabela').addEventListener('change', (e) => {
+        CC.atualizarSelectCampos(e.target.value, 'select-ordenacao-campo', 'btn-add-ordenacao')
+    });
+
+    document.getElementById('select-ordenacao-campo').addEventListener('change', (e) => {
+        document.getElementById('btn-add-ordenacao').disabled = !e.target.value;
+    });
+
+    document.getElementById('btn-add-ordenacao').addEventListener('click', () => {
+        CC.adicionarOrdenacao();
+        $("#collapseSQL").collapse('hide');
+    });
+
+    document.getElementById('input-limite-valor').addEventListener('input', (e) => {
+        CC.adicionarLimite(e.target.value);
+        $("#collapseSQL").collapse('hide');
+    });
+
+    document.getElementById('btn-obter-sql').addEventListener('click', obterSQL);
 
     Array.from(document.getElementsByClassName("item-arrastavel")).forEach(e => {
         e.addEventListener("dragstart", (e) => iniciarArrasto(e));
@@ -68,7 +120,6 @@ window.addEventListener('DOMContentLoaded', () => {
 
     paginaCanvas.addEventListener('mousedown', (e) => {
         const elementoPai = e.target.parentElement;
-        console.log(elementoPai);
         if (elementoPai.id === 'canvas-pagina') 
             desselecionarTudo();
         else { 
@@ -78,7 +129,6 @@ window.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    //tornarElementoArrastavel('.elemento-relatorio');
     carregarFontes();
 });
 
@@ -92,10 +142,14 @@ function carregarFontes(){
     }
 }
 
-
-
 function iniciarArrasto(evento) { 
-    evento.dataTransfer.setData("tipo", evento.target.getAttribute("data-tipo")); 
+    const tipo = evento.target.getAttribute("data-tipo");
+    evento.dataTransfer.setData("tipo", tipo);
+
+    if(tipo === 'imagem'){
+        const src = evento.target.getAttribute('src');
+        evento.dataTransfer.setData("src", src);
+    }
 }
 
 function permitirSoltar(evento) { 
@@ -105,6 +159,12 @@ function permitirSoltar(evento) {
 function soltar(evento) {
     evento.preventDefault();
     const tipo = evento.dataTransfer.getData("tipo");
+
+    const objParam = {}
+    if(tipo === 'imagem'){
+        objParam['src'] = evento.dataTransfer.getData('src');
+        console.log(objParam);
+    }
 
     const alvo = evento.target;
     let conteinerElemento;
@@ -119,20 +179,19 @@ function soltar(evento) {
     
     const rect = conteinerElemento.getBoundingClientRect();
 
-    criarElementoRelatorio(tipo, evento.clientX - rect.left, evento.clientY - rect.top, conteinerElemento);
+    criarElementoRelatorio(tipo, evento.clientX - rect.left, evento.clientY - rect.top, conteinerElemento, objParam);
 }
 
-function getCookie(name) {
-    const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
-    return v ? v.pop() : '';
+function getCSRFToken() {
+    const v = document.querySelector("input[name='csrfmiddlewaretoken']");
+    return v.value;
 }
 
 async function gerarRelatorioFinal() {
-    const csrftoken = getCookie('csrftoken');
+    const csrftoken = getCSRFToken();
 
-    const resp = await fetch('/gerar_pdf/', {
+    const resp = await fetch(URL_GERAR_PDF, {
         method: 'POST',
-        credentials: 'same-origin',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRFToken': csrftoken         // header exigido pelo Django CSRF
@@ -144,12 +203,14 @@ async function gerarRelatorioFinal() {
 
     if (!resp.ok) {
         const ct = resp.headers.get('content-type') || '';
-        if (ct.includes('application/json')) {
+        let msgErro = '';
+        let detalheErro = '';
+
+        if(ct.includes('application/json')){
             const data = await resp.json();
-            alert('Erro ao gerar PDF: ' + (data.error || JSON.stringify(data)));
-        } else {
-            const text = await resp.text();
-            alert('Erro ao gerar PDF: HTTP ' + resp.status + '\n' + text.slice(0, 1000));
+            msgErro = data.error;
+            detalheErro = data.detail || '';
+            alert(`${msgErro}: ${detalheErro}`);
         }
         return;
     }
@@ -160,15 +221,15 @@ async function gerarRelatorioFinal() {
         const preview = document.createElement('object');
         preview.data = window.URL.createObjectURL(blob);
         preview.type = "application/pdf";
+        preview.innerText = "Pré-visualização do PDF gerado";
 
-
-        preview.style.height = "297mm";
+        preview.style.height = "240mm";
         preview.style.width = "210mm";
         preview.style.maxWidth = "100%";
 
         const navPreview = document.getElementsByClassName('area-canvas')[0];
-        navPreview.children[0].classList.add('oculto-custom');
-        navPreview.children[1].classList.remove('oculto-custom');
+        navPreview.children[0].classList.add('d-none');
+        navPreview.children[1].classList.remove('d-none');
         navPreview.children[1].innerHTML = '';
         navPreview.children[1].append(preview);
 
@@ -188,8 +249,9 @@ function getHTML(){
             <style>
                 @page { size: A4; }
                 header, main, footer { position: relative; }
-                header{ height: 100px; }
+                header { height: 100px; }
                 .elemento-relatorio { position: absolute; }
+                table, th, td { border: 1px solid black; border-collapse: collapse; }
             </style>
         </head>
         <body>
@@ -200,15 +262,14 @@ function getHTML(){
 }
 
 function salvarModeloRelatorio() {
-    console.log("Função salvarTemplateJson chamada");
     const nome = document.getElementById('relatorio-nome').value || 'Relatório sem nome';
     const html = getHTML();
 
-    fetch('/salvar_relatorio/', {
+    fetch(URL_SALVAR_RELATORIO, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
+            'X-CSRFToken': getCSRFToken()
         },
         body: JSON.stringify({
             nome: nome,
@@ -219,9 +280,55 @@ function salvarModeloRelatorio() {
     .then(data => {
         if (data.success) {
             alert('Modelo salvo com sucesso!');
-            $('#salvarModeloRelatorio').modal('hide'); // Fecha o modal (usando jQuery/Bootstrap)
+            $('#salvarModeloRelatorio').modal('hide'); 
         } else {
             alert('Erro ao salvar modelo: ' + (data.error || JSON.stringify(data)));
         }
     });
+}
+
+async function obterSQL(){
+    const containerSQL = document.querySelector("#codigo-SQL");
+    const cargaUtil = CC.gerarCargaUtil();
+
+    if(cargaUtil.colunas.length === 0){
+        containerSQL.innerHTML = `<p class="px-3 py-4 mb-0 text-center text-danger">Nenhuma coluna foi especificada para a consulta.</p>`;
+        return;
+    }
+
+    containerSQL.innerHTML = `
+        <div class="d-flex justify-content-center">
+            <div class="spinner-border" role="status">
+                <span class="sr-only">Carregando...</span>
+            </div>
+        </div>
+    `;
+
+    const res = await fetch(URL_OBTER_SQL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify(cargaUtil)
+    });
+
+    if(!res.ok){
+        const ct = res.headers.get('content-type') || '';
+        console.log(res.headers);
+        let msgErro = '';
+        let detalheErro = '';
+
+        if(ct.includes('application/json')){
+            const data = await res.json();
+            msgErro = data.error;
+            detalheErro = data.detail || '';
+        }
+        containerSQL.innerHTML = `<p class="px-3 py-4 mb-0 text-center text-danger">Houve um erro ao obter SQL. ${msgErro}: ${detalheErro}</p>`;
+        return;
+    }
+
+    const json = await res.json();
+    const sql = json['sql'];
+    containerSQL.innerHTML = `<code>${formatarSQL(sql)}</code>`;
 }
