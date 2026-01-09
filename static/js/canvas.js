@@ -111,7 +111,8 @@ function criarH2(){
 
 function criarTabela(){
     const el = document.createElement('table');
-    el.style.borderCollapse = 'collapse';
+    el.classList.add('table', 'table-sm');
+    el.style.width = '600px';
     el.innerHTML = `
         <thead>
             <tr>

@@ -197,7 +197,7 @@ class ConstrutorConsulta:
         ordenacoes = self.configuracao_consulta.get('ordenacoes', [])
         for ord_item in ordenacoes:
             campo_input = ord_item['campo']
-            direcao = ord_item.get('direcao', 'asc').lower()
+            direcao = ord_item.get('ordem', 'asc').lower()
             
             # se o campo for uma métrica, usa o alias gerado
             if campo_input in mapa_aliases_metricas:

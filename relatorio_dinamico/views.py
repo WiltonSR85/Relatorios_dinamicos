@@ -47,9 +47,9 @@ def gerar_pdf(request):
     except (FieldError, ValidationError) as e:
         return JsonResponse({'error': 'Erro na construção da consulta', 'detail': str(e)}, status=400)
 
-    """ with open('html/relatorio.html', 'w', encoding='utf-8') as arquivo:
+    with open('templates/teste.html', 'w', encoding='utf-8') as arquivo:
         arquivo.write(html_final)
-        print("novo html salvo") """
+
 
     try:
         pdf = HTML(string=html_final, base_url=request.build_absolute_uri('/')).write_pdf()
@@ -85,3 +85,11 @@ def salvar_relatorio(request):
             {'error': 'Erro interno ao salvar o modelo', 'detail': str(e)},
             status=500
         )
+    
+def testar(request):
+    from django.template.loader import render_to_string
+    html = render_to_string('teste.html')
+    pdf = HTML(string=html, base_url=request.build_absolute_uri('/')).write_pdf()
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = 'inline; filename="teste.pdf"'
+    return response

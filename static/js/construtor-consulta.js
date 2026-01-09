@@ -4,7 +4,7 @@ const URL_ESQUEMA_DB = '/esquema';
 
 let ESQUEMA_DB = {};
 
-// Variáveis globais do estado da consulta
+// variável global que representa a consulta
 const estadoGlobal = {
     modeloRaiz: "",
     tabelas: [],
@@ -44,7 +44,6 @@ export function abrirConstrutorConsulta() {
     if (!elementoSelecionado) 
         return;
 
-    // Carrega lista de tabelas raiz no select
     const sel = document.getElementById('select-raiz');
     sel.innerHTML = '<option value="" disabled selected>Selecione...</option>';
     Object.keys(ESQUEMA_DB).forEach(k => 
@@ -52,15 +51,23 @@ export function abrirConstrutorConsulta() {
         <option value="${k}">${k}</option>`
     );
 
-    // Tenta carregar config existente
     const cfg = JSON.parse(elementoSelecionado.dataset.configConsulta || "{}");
-    redefinirConstrutorConsulta();
-
+    
     if (cfg.fonte_principal) {
-        // Restaurar estado
+        console.log(cfg);
         sel.value = cfg.fonte_principal;
-        iniciarRaiz(cfg.fonte_principal);
-        // TODO: Implementar re-hidratação completa (junções, colunas, filtros)
+        // o problema está aqui->  iniciarRaiz(cfg.fonte_principal);
+
+        estadoGlobal.colunas = cfg.colunas || [];
+        estadoGlobal.filtros = cfg.filtros || [];
+        estadoGlobal.ordenacoes = cfg.ordenacoes || [];
+        
+        if(cfg.limite){
+            estadoGlobal.limite = cfg.limite;
+        }
+        
+    } else {
+        redefinirConstrutorConsulta();
     }
 
     $('#modalConstrutorConsulta').modal('show');
@@ -196,7 +203,7 @@ export function adicionarColuna() {
         agregacao: agg || null
     });
 
-    renderizarColunasSelecionadas();
+    renderizarColunas();
     renderizarJson();
 
     document.getElementById('select-col-campo').value = "";
@@ -207,7 +214,7 @@ export function adicionarColuna() {
 
 export function removerColuna(index) {
     estadoGlobal.colunas.splice(index, 1);
-    renderizarColunasSelecionadas();
+    renderizarColunas();
     renderizarJson();
 }
 
@@ -312,8 +319,10 @@ export function renderizarTudo() {
     atualizarOpcoesSelect('select-filtro-tabela');
     atualizarOpcoesSelect('select-ordenacao-tabela');
 
-    renderizarColunasSelecionadas();
+    renderizarColunas();
     renderizarFiltros();
+    renderizarOrdenacoes();
+    renderizarLimite();
     renderizarJson();
 }
 
@@ -358,13 +367,14 @@ export function atualizarOpcoesSelect(idSelect) {
         opt.text = tab.nome_amigavel;
         select.appendChild(opt);
     });
+    
     if (estadoGlobal.tabelas.length > 0) {
         select.value = 0;
         select.dispatchEvent(new Event('change'));
     }
 }
 
-export function renderizarColunasSelecionadas() {
+export function renderizarColunas() {
     const container = document.getElementById('lista-colunas-selecionadas');
     const msg = document.getElementById('msg-sem-colunas');
     container.innerHTML = '';
@@ -434,7 +444,9 @@ export function renderizarOrdenacoes(){
     const containerTabela = document.getElementById('container-tabela-ordenacao');
     const msg = document.getElementById('msg-sem-ordenacao');
     tbody.innerHTML = '';
-
+    
+    console.log(`estadoGlobal.ordenacoes.length === 0: ${estadoGlobal.ordenacoes.length === 0}`);
+    console.log("estadoGlobal.ordenacoes:", estadoGlobal.ordenacoes);
     if (estadoGlobal.ordenacoes.length === 0) {
         containerTabela.classList.add('d-none');
         msg.classList.remove('d-none');
@@ -455,6 +467,12 @@ export function renderizarOrdenacoes(){
                 </td>`;
             tbody.appendChild(tr);
         });
+    }
+}
+
+export function renderizarLimite(){
+    if(estadoGlobal.limite){
+        document.getElementById('input-limite-valor').value = estadoGlobal.limite;
     }
 }
 

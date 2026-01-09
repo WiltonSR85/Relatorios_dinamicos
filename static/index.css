@@ -12,9 +12,6 @@ body {
 .area-canvas {
     background: #e9ecef;
     overflow: auto;
-    display: flex;
-    justify-content: center;
-    flex: 1;
 }
 
 /* Folha A4 */
@@ -24,8 +21,11 @@ body {
     background: white;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
     position: relative;
+    width: 642px;
     height: 140mm;
-    width: 210mm;
+    margin: auto;
+    user-select: none;
+    touch-action: none;
 }
 
 .pagina-a4 header, main, footer {
@@ -121,17 +121,15 @@ body {
 }
 
 pre {
-    background: #212529;
     color: #2ecc71;
     padding: 10px;
     border-radius: 6px;
-    max-height: 200px;
-    overflow: auto;
 }
 
 table, th, td { 
-    border: 1px solid black; 
-    border-collapse: collapse; 
+    border: 1px solid black !important; 
+    border-collapse: collapse !important; 
+    vertical-align: middle !important;
 }
 
 .container-imagens {

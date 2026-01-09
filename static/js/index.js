@@ -1,4 +1,5 @@
 import { criarElementoRelatorio, selecionarElemento, desselecionarTudo, deletarElementoSelecionado, inicializarOuvintesPropriedades } from './canvas.js';
+import { tornarElementoArrastavel, tornarElementoManipulavel } from './interact-config.js';
 import * as CC from './construtor-consulta.js';
 import { fontes, tiposDeDadosEntrada, formatarSQL } from './uteis.js';
 
@@ -7,130 +8,138 @@ const URL_SALVAR_RELATORIO = '/salvar_relatorio/';
 const URL_GERAR_PDF = '/gerar_pdf/';
 const URL_OBTER_SQL = '/obter_sql/';
 
-window.addEventListener('DOMContentLoaded', () => {
-    inicializarOuvintesPropriedades();
-    CC.iniciarAplicacao();
+inicializarOuvintesPropriedades();
+CC.iniciarAplicacao();
 
-    document.querySelector("#btn-abrir-editor").addEventListener("click", () => {
-        const navPreview = document.getElementsByClassName('area-canvas')[0];
-        navPreview.children[0].classList.remove('d-none');
-        navPreview.children[1].classList.add('d-none');
-    });
-
-    document.getElementById("btn-confirmar-salvar-modelo").addEventListener("click", salvarModeloRelatorio);
-    document.getElementById("btn-gerar-relatorio").addEventListener("click", gerarRelatorioFinal);
-    document.getElementById("btn-deletar-elemento").addEventListener('click', deletarElementoSelecionado);
-
-
-    document.getElementById("btn-configurar-consulta").addEventListener("click", CC.abrirConstrutorConsulta);
-    document.getElementById("btn-salvar-config-tabela").addEventListener('click', CC.salvarConfiguracaoTabela);
-
-
-    document.getElementById('select-raiz').addEventListener('change', (e) => {
-        if (e.target.value) 
-            CC.iniciarRaiz(e.target.value);
-    });
-
-    document.getElementById('lista-tabelas').addEventListener('click', (e) => {
-        const btn = e.target.closest('.btn-add-join');
-        if (btn) 
-            CC.adicionarJuncao(btn.getAttribute('data-tab-id'), parseInt(btn.getAttribute('data-conn-idx')));
-    });
-
-    document.getElementById('lista-colunas-selecionadas').addEventListener('click', (e) => {
-        const btn = e.target.closest('.btn-remover-col');
-        if (btn) {
-            CC.removerColuna(parseInt(btn.getAttribute('data-idx')));
-        }
-    });
-
-    document.getElementById('tbody-filtros').addEventListener('click', (e) => {
-        const btn = e.target.closest('.btn-remover-filtro');
-        if (btn) 
-            CC.removerFiltro(parseInt(btn.getAttribute('data-idx')));
-    });
-
-    document.getElementById('tbody-ordenacao').addEventListener('click', (e) => {
-        const btn = e.target.closest('.btn-remover-ordenacao');
-        if (btn) 
-            CC.removerOrdenacao(parseInt(btn.getAttribute('data-idx')));
-    });
-
-    // Filtros e colunas 
-    document.getElementById('select-col-tabela').addEventListener('change', (e) => {
-        CC.atualizarSelectCampos(e.target.value, 'select-col-campo', 'btn-add-coluna');
-    });
-
-    document.getElementById('select-col-campo').addEventListener('change', (e) => {
-        document.getElementById('btn-add-coluna').disabled = !e.target.value;
-    });
-
-    document.getElementById('btn-add-coluna').addEventListener('click', () => {
-        CC.adicionarColuna();
-        $("#collapseSQL").collapse('hide');
-    });
-
-    document.getElementById('select-filtro-tabela').addEventListener('change', (e) => {
-        CC.atualizarSelectCampos(e.target.value, 'select-filtro-campo', 'btn-add-filtro')
-    });
-    
-    document.getElementById('select-filtro-campo').addEventListener('change', (e) => {
-        document.getElementById('btn-add-filtro').disabled = !e.target.value;
-    });
-
-    // ajusta o tipo de entrada conforme o tipo de dado do campo selecionado
-    document.getElementById('select-filtro-campo').addEventListener('change', (e) => {
-        const tipoCampo = e.target.options[e.target.selectedIndex].getAttribute('data-tipo');
-        document.getElementById('input-filtro-valor').value = '';
-        document.getElementById('input-filtro-valor').type = tiposDeDadosEntrada[tipoCampo] || 'text';
-    });
-    
-    document.getElementById('btn-add-filtro').addEventListener('click', () => {
-        CC.adicionarFiltro();
-        $("#collapseSQL").collapse('hide');
-    });
-
-    document.getElementById('select-ordenacao-tabela').addEventListener('change', (e) => {
-        CC.atualizarSelectCampos(e.target.value, 'select-ordenacao-campo', 'btn-add-ordenacao')
-    });
-
-    document.getElementById('select-ordenacao-campo').addEventListener('change', (e) => {
-        document.getElementById('btn-add-ordenacao').disabled = !e.target.value;
-    });
-
-    document.getElementById('btn-add-ordenacao').addEventListener('click', () => {
-        CC.adicionarOrdenacao();
-        $("#collapseSQL").collapse('hide');
-    });
-
-    document.getElementById('input-limite-valor').addEventListener('input', (e) => {
-        CC.adicionarLimite(e.target.value);
-        $("#collapseSQL").collapse('hide');
-    });
-
-    document.getElementById('btn-obter-sql').addEventListener('click', obterSQL);
-
-    Array.from(document.getElementsByClassName("item-arrastavel")).forEach(e => {
-        e.addEventListener("dragstart", (e) => iniciarArrasto(e));
-    });
-
-    const paginaCanvas = document.getElementById("canvas-pagina");
-    paginaCanvas.addEventListener("dragover", (e) => permitirSoltar(e));
-    paginaCanvas.addEventListener("drop", (e) => soltar(e));
-
-    paginaCanvas.addEventListener('mousedown', (e) => {
-        const elementoPai = e.target.parentElement;
-        if (elementoPai.id === 'canvas-pagina') 
-            desselecionarTudo();
-        else { 
-            const el = e.target.closest('.elemento-relatorio'); 
-            if (el) 
-                selecionarElemento(el); 
-        }
-    });
-
-    carregarFontes();
+document.querySelector("#btn-abrir-editor").addEventListener("click", () => {
+    const navPreview = document.getElementsByClassName('area-canvas')[0];
+    navPreview.children[0].classList.remove('d-none');
+    navPreview.children[1].classList.add('d-none');
 });
+
+document.getElementById("btn-confirmar-salvar-modelo").addEventListener("click", salvarModeloRelatorio);
+document.getElementById("btn-gerar-relatorio").addEventListener("click", gerarRelatorioFinal);
+document.getElementById("btn-deletar-elemento").addEventListener('click', deletarElementoSelecionado);
+
+
+document.getElementById("btn-configurar-consulta").addEventListener("click", CC.abrirConstrutorConsulta);
+document.getElementById("btn-salvar-config-tabela").addEventListener('click', CC.salvarConfiguracaoTabela);
+
+
+document.getElementById('select-raiz').addEventListener('change', (e) => {
+    if (e.target.value) 
+        CC.iniciarRaiz(e.target.value);
+});
+
+document.getElementById('lista-tabelas').addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-add-join');
+    if (btn){
+        CC.adicionarJuncao(btn.getAttribute('data-tab-id'), parseInt(btn.getAttribute('data-conn-idx')));
+    }
+});
+
+document.getElementById('lista-colunas-selecionadas').addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-remover-col');
+    if (btn) {
+        CC.removerColuna(parseInt(btn.getAttribute('data-idx')));
+        $("#collapseSQL").collapse('hide');
+    }
+});
+
+document.getElementById('tbody-filtros').addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-remover-filtro');
+    if (btn){
+        CC.removerFiltro(parseInt(btn.getAttribute('data-idx')));
+        $("#collapseSQL").collapse('hide');
+    }
+});
+
+document.getElementById('tbody-ordenacao').addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-remover-ordenacao');
+    if (btn){
+        CC.removerOrdenacao(parseInt(btn.getAttribute('data-idx')));
+        $("#collapseSQL").collapse('hide');
+    }
+});
+
+document.getElementById('select-col-tabela').addEventListener('change', (e) => {
+    CC.atualizarSelectCampos(e.target.value, 'select-col-campo', 'btn-add-coluna');
+});
+
+document.getElementById('select-col-campo').addEventListener('change', (e) => {
+    document.getElementById('btn-add-coluna').disabled = !e.target.value;
+});
+
+document.getElementById('btn-add-coluna').addEventListener('click', () => {
+    CC.adicionarColuna();
+    $("#collapseSQL").collapse('hide');
+});
+
+document.getElementById('select-filtro-tabela').addEventListener('change', (e) => {
+    CC.atualizarSelectCampos(e.target.value, 'select-filtro-campo', 'btn-add-filtro')
+});
+
+document.getElementById('select-filtro-campo').addEventListener('change', (e) => {
+    document.getElementById('btn-add-filtro').disabled = !e.target.value;
+});
+
+// ajusta o tipo de entrada conforme o tipo de dado do campo selecionado
+document.getElementById('select-filtro-campo').addEventListener('change', (e) => {
+    const tipoCampo = e.target.options[e.target.selectedIndex].getAttribute('data-tipo');
+    document.getElementById('input-filtro-valor').value = '';
+    document.getElementById('input-filtro-valor').type = tiposDeDadosEntrada[tipoCampo] || 'text';
+});
+
+document.getElementById('btn-add-filtro').addEventListener('click', () => {
+    CC.adicionarFiltro();
+    $("#collapseSQL").collapse('hide');
+});
+
+document.getElementById('select-ordenacao-tabela').addEventListener('change', (e) => {
+    CC.atualizarSelectCampos(e.target.value, 'select-ordenacao-campo', 'btn-add-ordenacao')
+});
+
+document.getElementById('select-ordenacao-campo').addEventListener('change', (e) => {
+    document.getElementById('btn-add-ordenacao').disabled = !e.target.value;
+});
+
+document.getElementById('btn-add-ordenacao').addEventListener('click', () => {
+    CC.adicionarOrdenacao();
+    $("#collapseSQL").collapse('hide');
+});
+
+document.getElementById('input-limite-valor').addEventListener('input', (e) => {
+    CC.adicionarLimite(e.target.value);
+    $("#collapseSQL").collapse('hide');
+});
+
+document.getElementById('btn-obter-sql').addEventListener('click', obterSQL);
+
+Array.from(document.getElementsByClassName("item-arrastavel")).forEach(e => {
+    e.addEventListener("dragstart", iniciarArrasto);
+});
+
+const paginaCanvas = document.getElementById("canvas-pagina");
+paginaCanvas.addEventListener("dragover", permitirSoltar);
+paginaCanvas.addEventListener("drop", soltar);
+
+paginaCanvas.addEventListener('mousedown', (e) => {
+    const elementoPai = e.target.parentElement;
+    if (elementoPai.id === 'canvas-pagina') 
+        desselecionarTudo();
+    else { 
+        const el = e.target.closest('.elemento-relatorio'); 
+        if (el) 
+            selecionarElemento(el); 
+    }
+});
+
+let areaManipulavel = interact(".area-canvas");
+tornarElementoArrastavel(areaManipulavel);
+tornarElementoManipulavel(areaManipulavel, paginaCanvas);
+
+carregarFontes();
+
 
 function carregarFontes(){
     const selectFontes = document.getElementById('prop-fonte-familia');
@@ -143,13 +152,15 @@ function carregarFontes(){
 }
 
 function iniciarArrasto(evento) { 
+    const obj = {};
     const tipo = evento.target.getAttribute("data-tipo");
-    evento.dataTransfer.setData("tipo", tipo);
+    obj["tipo"] = tipo;
 
     if(tipo === 'imagem'){
-        const src = evento.target.getAttribute('src');
-        evento.dataTransfer.setData("src", src);
+        obj["src"] = evento.target.getAttribute('src');
     }
+
+    evento.dataTransfer.setData("text/plain", JSON.stringify(obj));
 }
 
 function permitirSoltar(evento) { 
@@ -158,12 +169,13 @@ function permitirSoltar(evento) {
 
 function soltar(evento) {
     evento.preventDefault();
-    const tipo = evento.dataTransfer.getData("tipo");
+    let obj = evento.dataTransfer.getData("text/plain");
+    obj = JSON.parse(obj);
+    const tipo = obj["tipo"];
 
     const objParam = {}
     if(tipo === 'imagem'){
-        objParam['src'] = evento.dataTransfer.getData('src');
-        console.log(objParam);
+        objParam['src'] = obj["src"];
     }
 
     const alvo = evento.target;
@@ -221,7 +233,12 @@ async function gerarRelatorioFinal() {
         const preview = document.createElement('object');
         preview.data = window.URL.createObjectURL(blob);
         preview.type = "application/pdf";
-        preview.innerText = "Pré-visualização do PDF gerado";
+        preview.innerText = "Não foi possível exibir o relatório gerado. ";
+        const a = document.createElement('a');
+        a.href = preview.data;
+        a.download = "relatorio.pdf";
+        a.innerText = "Baixe o arquivo em PDF.";
+        preview.appendChild(a);
 
         preview.style.height = "240mm";
         preview.style.width = "210mm";
@@ -246,12 +263,17 @@ function getHTML(){
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
             <style>
-                @page { size: A4; }
-                header, main, footer { position: relative; }
+                @page { size: A4; background-color: lightblue; }
+                * { margin: 0; padding: 0; }
+                body { background-color: white; } /* para exibir a margem */
+                header, main { position: relative; }
+                footer { position: fixed; bottom: 0; }
                 header { height: 100px; }
-                .elemento-relatorio { position: absolute; }
-                table, th, td { border: 1px solid black; border-collapse: collapse; }
+                .elemento-relatorio { position: relative; }
+                header > .elemento-relatorio, footer > .elemento-relatorio { position: absolute; }
+                table, th, td { border: 1px solid black !important; border-collapse: collapse !important; vertical-align: middle; }
             </style>
         </head>
         <body>
@@ -315,7 +337,6 @@ async function obterSQL(){
 
     if(!res.ok){
         const ct = res.headers.get('content-type') || '';
-        console.log(res.headers);
         let msgErro = '';
         let detalheErro = '';
 

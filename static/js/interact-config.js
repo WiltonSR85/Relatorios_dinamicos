@@ -12,7 +12,6 @@ export function tornarElementoArrastavel(objetoInteract){
         },
         modifiers: [interact.modifiers.restrictRect({ 
             restriction: 'parent', 
-            endOnly: false 
         })]
     });
 }
@@ -33,6 +32,28 @@ export function tornarElementoRedimencionavel(objetoInteract, edges = {
                     transform: `translate(${x}px, ${y}px)` 
                 });
                 Object.assign(evento.target.dataset, { x, y });
+            }
+        },
+        modifiers: [
+            interact.modifiers.restrictEdges({
+                outer: 'parent',
+            }),
+        ]
+    });
+}
+
+// função para tornar o elemento redimensionável por gestos de pinça em dispositivos de toque
+export function tornarElementoManipulavel(objetoInteract, elementoDeEscala){
+    let escala = 1;
+    
+    objetoInteract.gesturable({
+        listeners: {
+            move (event) {
+                let escalaAtual = event.scale * escala;
+                elementoDeEscala.style.transform = `scale(${escalaAtual})`;
+            },
+            end (event) {
+                escala = escala * event.scale;
             }
         }
     });
