@@ -206,7 +206,7 @@ async function gerarRelatorioFinal() {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': csrftoken         // header exigido pelo Django CSRF
+            'X-CSRFToken': csrftoken
         },
         body: JSON.stringify({
             html: getHTML()
@@ -257,30 +257,7 @@ async function gerarRelatorioFinal() {
 }
 
 function getHTML(){
-    return `
-        <!DOCTYPE html>
-        <html lang="pt-br">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
-            <style>
-                @page { size: A4; background-color: lightblue; }
-                * { margin: 0; padding: 0; }
-                body { background-color: white; } /* para exibir a margem */
-                header, main { position: relative; }
-                footer { position: fixed; bottom: 0; }
-                header { height: 100px; }
-                .elemento-relatorio { position: relative; }
-                header > .elemento-relatorio, footer > .elemento-relatorio { position: absolute; }
-                table, th, td { border: 1px solid black !important; border-collapse: collapse !important; vertical-align: middle; }
-            </style>
-        </head>
-        <body>
-            ${document.getElementById('canvas-pagina').innerHTML}
-        </body>
-        </html>
-    `;    
+    return `${document.getElementById('canvas-pagina').innerHTML}`;
 }
 
 function salvarModeloRelatorio() {

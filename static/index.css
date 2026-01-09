@@ -5,12 +5,13 @@ body {
 .barra-lateral {
     background: white;
     border-right: 1px solid #ddd;
+    border-left: 1px solid #ddd;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
     overflow-y: auto;
     z-index: 10;
 }
 
 .area-canvas {
-    background: #e9ecef;
     overflow: auto;
 }
 

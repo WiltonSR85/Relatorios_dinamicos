@@ -8,6 +8,7 @@ from django.utils.encoding import force_str
 from setup.esquema import esquema_bd
 from weasyprint import HTML
 from django.core.exceptions import FieldError, ValidationError
+import nh3
 
 def index(request):
     return render(request, 'index.html')
@@ -43,7 +44,7 @@ def gerar_pdf(request):
 
     html = dados_recebidos.get('html')
     try:
-        html_final = ConstrutorHTML.inserir_dados_no_html(esquema_bd, html)
+        html_final = ConstrutorHTML.gerar_html(esquema_bd, html, "_pdf_dinamico.html")
     except (FieldError, ValidationError) as e:
         return JsonResponse({'error': 'Erro na construção da consulta', 'detail': str(e)}, status=400)
 
@@ -60,31 +61,31 @@ def gerar_pdf(request):
     response['Content-Disposition'] = 'attachment; filename="relatorio.pdf"'
     return response
 
+@require_POST
 def salvar_relatorio(request):
-    if request.method != 'POST':
-        return JsonResponse({'error': 'Método não permitido'}, status=405)
+    data = json.loads(force_str(request.body))
 
-    try:
-        data = json.loads(force_str(request.body))
+    nome = data.get('nome')
+    html = data.get('html')
 
-        nome = data.get('nome')
-        html = data.get('html')
-
-        if not nome or not html:
-            return JsonResponse(
-                {'error': 'Campos obrigatórios ausentes: nome e html'},
-                status=400
-            )
-
-        modelo = Relatorio.objects.create(nome=nome, html=html)
-
-        return JsonResponse({'success': True, 'id': modelo.id})
-
-    except Exception as e:
+    if not nome or not html:
         return JsonResponse(
-            {'error': 'Erro interno ao salvar o modelo', 'detail': str(e)},
-            status=500
+            {'error': 'Campos obrigatórios ausentes: nome e html'},
+            status=400
         )
+
+    tags = {"div", "h1", "h2", "img", "table", "thead", "tbody", "tr", "td", "header", "main", "footer"}
+    atributos = {"class", "style", "data-x", "data-y", "data-tipo", "src"}
+    tags_e_atributos = {}
+
+    for tag in tags:
+        tags_e_atributos[tag] = atributos
+
+    html_limpo = nh3.clean(html, tags=tags, attributes=tags_e_atributos)
+
+    modelo = Relatorio.objects.create(nome=nome, html=html_limpo)
+
+    return JsonResponse({'success': True, 'id': modelo.id})
     
 def testar(request):
     from django.template.loader import render_to_string

@@ -3,8 +3,9 @@ from django.db.models import Q, Count, Sum, Avg, Min, Max
 from django.core.exceptions import ValidationError
 from functools import reduce
 import operator
-from bs4 import BeautifulSoup
 import json
+from bs4 import BeautifulSoup
+from django.template.loader import render_to_string
 
 # mapa de funções de agregação permitidas 
 MAPA_AGREGACAO = {
@@ -247,10 +248,20 @@ class ConstrutorConsulta:
 
 
 class ConstrutorHTML:
-    
+
     @staticmethod
-    def inserir_dados_no_html(esquema_bd, html_template):
-        soup = BeautifulSoup(html_template, 'html.parser')
+    def gerar_html(esquema_bd, html_inicial, caminho_template):
+        template = render_to_string(caminho_template)
+        soup = BeautifulSoup(template, 'html.parser')
+        body = soup.find('body')
+        html_preenchido = ConstrutorHTML._inserir_dados_no_html(esquema_bd, html_inicial)
+        body.append(html_preenchido)
+
+        return str(soup)
+
+    @staticmethod
+    def _inserir_dados_no_html(esquema_bd, html_inicial):
+        soup = BeautifulSoup(html_inicial, 'html.parser')
         tabelas = soup.find_all(attrs={'data-config-consulta': True})
 
         for tab in tabelas:
@@ -267,7 +278,7 @@ class ConstrutorHTML:
             # remove o atributo de dados para limpar o HTML final
             del tab['data-config-consulta']
 
-        return str(soup)
+        return soup
 
     @staticmethod
     def _preencher_tabela(tabela, lista_dados, soup):
@@ -298,4 +309,3 @@ class ConstrutorHTML:
 
             tbody.append(linha_tabela)
 
-        print(soup.prettify())
