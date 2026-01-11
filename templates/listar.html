@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modelos de relatório salvos</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <h1 class="text-center my-5">Modelos de relatório salvos</h1>
+                <div class="d-flex justify-content-center">
+                    <table class="table table-sm text-center w-50">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Data de criação</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for relatorio in relatorios %}
+                                <tr>
+                                    <td>{{ relatorio.nome }}</td>
+                                    <td>{{ relatorio.criado_em|date:"d/M/Y" }}</td>
+                                    <td>
+                                        <a class="btn btn-primary" href="{% url "editar_relatorio" id=relatorio.id %}">Editar</a>
+                                        <a class="btn btn-danger" href="{% url "excluir_relatorio" id=relatorio.id %}">Excluir</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

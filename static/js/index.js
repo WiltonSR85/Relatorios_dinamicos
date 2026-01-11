@@ -1,5 +1,5 @@
-import { criarElementoRelatorio, selecionarElemento, desselecionarTudo, deletarElementoSelecionado, inicializarOuvintesPropriedades } from './canvas.js';
-import { tornarElementoArrastavel, tornarElementoManipulavel } from './interact-config.js';
+import { criarElementoRelatorio, selecionarElemento, desselecionarTudo, deletarElementoSelecionado, inicializarOuvintesPropriedades, tornarComponentesDaTabelasRedimensionaveis } from './canvas.js';
+import { tornarElementoArrastavel, tornarElementoRedimencionavel, tornarElementoManipulavel } from './interact-config.js';
 import * as CC from './construtor-consulta.js';
 import { fontes, tiposDeDadosEntrada, formatarSQL } from './uteis.js';
 
@@ -261,8 +261,9 @@ function getHTML(){
 }
 
 function salvarModeloRelatorio() {
-    const nome = document.getElementById('relatorio-nome').value || 'Relatório sem nome';
+    const nome = document.getElementById('relatorio-nome');
     const html = getHTML();
+    const id = document.getElementById('relatorio-id');
 
     fetch(URL_SALVAR_RELATORIO, {
         method: 'POST',
@@ -271,14 +272,16 @@ function salvarModeloRelatorio() {
             'X-CSRFToken': getCSRFToken()
         },
         body: JSON.stringify({
-            nome: nome,
-            html: html
+            nome: nome.value,
+            html: html,
+            id: id.value
         })
     })
     .then(resp => resp.json())
     .then(data => {
         if (data.success) {
             alert('Modelo salvo com sucesso!');
+            id.value = data.id;
             $('#salvarModeloRelatorio').modal('hide'); 
         } else {
             alert('Erro ao salvar modelo: ' + (data.error || JSON.stringify(data)));
@@ -330,3 +333,24 @@ async function obterSQL(){
     const sql = json['sql'];
     containerSQL.innerHTML = `<code>${formatarSQL(sql)}</code>`;
 }
+
+// prepara os elementos já existentes no HTML para serem arrastáveis e manipuláveis
+function prepararElementosExistentes(){
+    const elementos = document.getElementsByClassName('elemento-relatorio');
+    Array.from(elementos).forEach(el => {
+        const tipo = el.dataset.tipo;        
+        const objetoInteract = interact(el);
+        tornarElementoArrastavel(objetoInteract);
+
+        if(tipo == 'tabela'){
+            tornarElementoRedimencionavel(objetoInteract, {
+                right: true, left: true, top: false, bottom: false
+            });
+            tornarComponentesDaTabelasRedimensionaveis(objetoInteract.target);
+        } else if (tipo !== 'imagem'){
+            tornarElementoRedimencionavel(objetoInteract);
+        }
+    });
+}
+
+prepararElementosExistentes();

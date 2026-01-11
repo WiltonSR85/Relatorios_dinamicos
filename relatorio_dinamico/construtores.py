@@ -265,10 +265,8 @@ class ConstrutorHTML:
         tabelas = soup.find_all(attrs={'data-config-consulta': True})
 
         for tab in tabelas:
-            # recupera e processa a configuração
             dados_consulta_str = tab['data-config-consulta']
             dados_consulta = json.loads(dados_consulta_str)
-            
             # retorna lista de dicts: [{'Nome': 'João', 'Idade': 30}, ...]
             dados = ConstrutorConsulta(esquema_bd, dados_consulta).executar()
             
@@ -282,11 +280,6 @@ class ConstrutorHTML:
 
     @staticmethod
     def _preencher_tabela(tabela, lista_dados, soup):
-        """
-        Preenche a tabela usando métodos nativos do BeautifulSoup.
-        Recebe: soup (objeto pai), lista_dados (lista de dicts)
-        """
-
         cabecalhos = lista_dados[0].keys()
         tr = tabela.thead.tr
         ths = tr.find_all('th')

@@ -55,9 +55,13 @@
 
             <div class="col-12 col-lg-7 area-canvas p-4">
                 <div id="canvas-pagina" class="pagina-a4">
-                    <header id="header"></header>
-                    <main id="main"></main>
-                    <footer id="footer"></footer>
+                    {% if relatorio %}
+                        {{ relatorio.html|safe }}
+                    {% else %}
+                        <header id="header"></header>
+                        <main id="main"></main>
+                        <footer id="footer"></footer>
+                    {% endif %}
                 </div>
                 <div id="ver-pdf" class="d-none"></div>
             </div>
@@ -404,7 +408,8 @@
                     <form>
                     <div class="form-group">
                         <label for="relatorio-nome" class="col-form-label">Nome do relatório</label>
-                        <input type="text" class="form-control" id="relatorio-nome">
+                        <input type="text" class="form-control" id="relatorio-nome" value="{{ relatorio.nome }}">
+                        <input type="hidden" id="relatorio-id" value="{{ relatorio.id }}">
                     </div>
                     </form>
                 </div>
