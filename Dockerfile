@@ -33,9 +33,9 @@ RUN pip install --upgrade pip && \
 COPY . .
 
 # Expor porta
-EXPOSE 8000
+EXPOSE 8001
 
 # Entrypoint que executa migrações e depois o servidor
 ENTRYPOINT ["sh", "-c"]
-CMD ["python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]
+CMD ["python manage.py migrate && python manage.py runserver 0.0.0.0:8001"]
 
