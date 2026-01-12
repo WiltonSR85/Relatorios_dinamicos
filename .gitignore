@@ -14,4 +14,4 @@ staticfiles
 # Backup files # 
 *.bak 
 
- *.sqlite3
+templates/teste.html

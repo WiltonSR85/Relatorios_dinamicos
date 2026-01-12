@@ -1,77 +1,145 @@
-//import { tornarElementoArrastavel } from './interact-config.js';
-import { criarElementoRelatorio, selecionarElemento, desselecionarTudo, deletarElementoSelecionado, inicializarOuvintesPropriedades } from './canvas.js';
+import { criarElementoRelatorio, selecionarElemento, desselecionarTudo, deletarElementoSelecionado, inicializarOuvintesPropriedades, tornarComponentesDaTabelasRedimensionaveis } from './canvas.js';
+import { tornarElementoArrastavel, tornarElementoRedimencionavel, tornarElementoManipulavel } from './interact-config.js';
 import * as CC from './construtor-consulta.js';
-import { fontes } from './canvas.js';
+import { fontes, tiposDeDadosEntrada, formatarSQL } from './uteis.js';
 
+// URLs para comunicação com o backend
+const URL_SALVAR_RELATORIO = '/salvar_relatorio/';
+const URL_GERAR_PDF = '/gerar_pdf/';
+const URL_OBTER_SQL = '/obter_sql/';
 
-window.addEventListener('DOMContentLoaded', () => {
-    inicializarOuvintesPropriedades();
-    CC.iniciarAplicacao();
-    //CC.renderizarTudo();
+inicializarOuvintesPropriedades();
+CC.iniciarAplicacao();
 
-    document.getElementById("btn-salvar-modelo").addEventListener("click", salvarTemplateJson);
-    document.getElementById("btn-gerar-relatorio").addEventListener("click", gerarRelatorioFinal);
-    document.getElementById("btn-deletar-elemento").addEventListener('click', deletarElementoSelecionado);
-
-
-    document.getElementById("btn-configurar-consulta").addEventListener("click", CC.abrirConstrutorConsulta);
-    document.getElementById("btn-salvar-config-tabela").addEventListener('click', CC.salvarConfiguracaoTabela);
-
-
-    document.getElementById('select-raiz').addEventListener('change', (e) => {
-        if (e.target.value) 
-            CC.iniciarRaiz(e.target.value);
-    });
-
-    document.getElementById('lista-tabelas').addEventListener('click', (e) => {
-        const btn = e.target.closest('.btn-add-join');
-        if (btn) 
-            CC.adicionarJuncao(btn.getAttribute('data-tab-id'), parseInt(btn.getAttribute('data-conn-idx')));
-    });
-
-    document.getElementById('lista-colunas-selecionadas').addEventListener('click', (e) => {
-        const btn = e.target.closest('.btn-remover-col');
-        if (btn) 
-            CC.removerColuna(parseInt(btn.getAttribute('data-idx')));
-    });
-
-    document.getElementById('tbody-filtros').addEventListener('click', (e) => {
-        const btn = e.target.closest('.btn-remover-filtro');
-        if (btn) 
-            CC.removerFiltro(parseInt(btn.getAttribute('data-idx')));
-    });
-
-    // Filtros e colunas 
-    document.getElementById('select-col-tabela').addEventListener('change', (e) => CC.atualizarSelectCampos(e.target.value, 'select-col-campo', 'btn-add-coluna'));
-    document.getElementById('select-col-campo').addEventListener('change', (e) => document.getElementById('btn-add-coluna').disabled = !e.target.value);
-    document.getElementById('btn-add-coluna').addEventListener('click', CC.adicionarColuna);
-
-    document.getElementById('select-filtro-tabela').addEventListener('change', (e) => CC.atualizarSelectCampos(e.target.value, 'select-filtro-campo', 'btn-add-filtro'));
-    document.getElementById('select-filtro-campo').addEventListener('change', (e) => document.getElementById('btn-add-filtro').disabled = !e.target.value);
-    document.getElementById('btn-add-filtro').addEventListener('click', CC.adicionarFiltro);
-
-
-    Array.from(document.getElementsByClassName("item-arrastavel")).forEach(e => {
-        e.addEventListener("dragstart", (e) => iniciarArrasto(e));
-    });
-
-    const paginaCanvas = document.getElementById("canvas-pagina");
-    paginaCanvas.addEventListener("dragover", (e) => permitirSoltar(e));
-    paginaCanvas.addEventListener("drop", (e) => soltar(e));
-
-    paginaCanvas.addEventListener('mousedown', (e) => {
-        if (e.target.id === 'canvas-pagina') 
-            desselecionarTudo();
-        else { 
-            const el = e.target.closest('.elemento-relatorio'); 
-            if (el) 
-                selecionarElemento(el); 
-        }
-    });
-
-    //tornarElementoArrastavel('.elemento-relatorio');
-    carregarFontes();
+document.querySelector("#btn-abrir-editor").addEventListener("click", () => {
+    const navPreview = document.getElementsByClassName('area-canvas')[0];
+    navPreview.children[0].classList.remove('d-none');
+    navPreview.children[1].classList.add('d-none');
 });
+
+document.getElementById("btn-confirmar-salvar-modelo").addEventListener("click", salvarModeloRelatorio);
+document.getElementById("btn-gerar-relatorio").addEventListener("click", gerarRelatorioFinal);
+document.getElementById("btn-deletar-elemento").addEventListener('click', deletarElementoSelecionado);
+
+
+document.getElementById("btn-configurar-consulta").addEventListener("click", CC.abrirConstrutorConsulta);
+document.getElementById("btn-salvar-config-tabela").addEventListener('click', CC.salvarConfiguracaoTabela);
+
+
+document.getElementById('select-raiz').addEventListener('change', (e) => {
+    if (e.target.value) 
+        CC.iniciarRaiz(e.target.value);
+});
+
+document.getElementById('lista-tabelas').addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-add-join');
+    if (btn){
+        CC.adicionarJuncao(btn.getAttribute('data-tab-id'), parseInt(btn.getAttribute('data-conn-idx')));
+    }
+});
+
+document.getElementById('lista-colunas-selecionadas').addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-remover-col');
+    if (btn) {
+        CC.removerColuna(parseInt(btn.getAttribute('data-idx')));
+        $("#collapseSQL").collapse('hide');
+    }
+});
+
+document.getElementById('tbody-filtros').addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-remover-filtro');
+    if (btn){
+        CC.removerFiltro(parseInt(btn.getAttribute('data-idx')));
+        $("#collapseSQL").collapse('hide');
+    }
+});
+
+document.getElementById('tbody-ordenacao').addEventListener('click', (e) => {
+    const btn = e.target.closest('.btn-remover-ordenacao');
+    if (btn){
+        CC.removerOrdenacao(parseInt(btn.getAttribute('data-idx')));
+        $("#collapseSQL").collapse('hide');
+    }
+});
+
+document.getElementById('select-col-tabela').addEventListener('change', (e) => {
+    CC.atualizarSelectCampos(e.target.value, 'select-col-campo', 'btn-add-coluna');
+});
+
+document.getElementById('select-col-campo').addEventListener('change', (e) => {
+    document.getElementById('btn-add-coluna').disabled = !e.target.value;
+});
+
+document.getElementById('btn-add-coluna').addEventListener('click', () => {
+    CC.adicionarColuna();
+    $("#collapseSQL").collapse('hide');
+});
+
+document.getElementById('select-filtro-tabela').addEventListener('change', (e) => {
+    CC.atualizarSelectCampos(e.target.value, 'select-filtro-campo', 'btn-add-filtro')
+});
+
+document.getElementById('select-filtro-campo').addEventListener('change', (e) => {
+    document.getElementById('btn-add-filtro').disabled = !e.target.value;
+});
+
+// ajusta o tipo de entrada conforme o tipo de dado do campo selecionado
+document.getElementById('select-filtro-campo').addEventListener('change', (e) => {
+    const tipoCampo = e.target.options[e.target.selectedIndex].getAttribute('data-tipo');
+    document.getElementById('input-filtro-valor').value = '';
+    document.getElementById('input-filtro-valor').type = tiposDeDadosEntrada[tipoCampo] || 'text';
+});
+
+document.getElementById('btn-add-filtro').addEventListener('click', () => {
+    CC.adicionarFiltro();
+    $("#collapseSQL").collapse('hide');
+});
+
+document.getElementById('select-ordenacao-tabela').addEventListener('change', (e) => {
+    CC.atualizarSelectCampos(e.target.value, 'select-ordenacao-campo', 'btn-add-ordenacao')
+});
+
+document.getElementById('select-ordenacao-campo').addEventListener('change', (e) => {
+    document.getElementById('btn-add-ordenacao').disabled = !e.target.value;
+});
+
+document.getElementById('btn-add-ordenacao').addEventListener('click', () => {
+    CC.adicionarOrdenacao();
+    $("#collapseSQL").collapse('hide');
+});
+
+document.getElementById('input-limite-valor').addEventListener('input', (e) => {
+    CC.adicionarLimite(e.target.value);
+    $("#collapseSQL").collapse('hide');
+});
+
+document.getElementById('btn-obter-sql').addEventListener('click', obterSQL);
+
+Array.from(document.getElementsByClassName("item-arrastavel")).forEach(e => {
+    e.addEventListener("dragstart", iniciarArrasto);
+});
+
+const paginaCanvas = document.getElementById("canvas-pagina");
+paginaCanvas.addEventListener("dragover", permitirSoltar);
+paginaCanvas.addEventListener("drop", soltar);
+
+paginaCanvas.addEventListener('mousedown', (e) => {
+    const elementoPai = e.target.parentElement;
+    if (elementoPai.id === 'canvas-pagina') 
+        desselecionarTudo();
+    else { 
+        const el = e.target.closest('.elemento-relatorio'); 
+        if (el) 
+            selecionarElemento(el); 
+    }
+});
+
+let areaManipulavel = interact(".area-canvas");
+tornarElementoArrastavel(areaManipulavel);
+tornarElementoManipulavel(areaManipulavel, paginaCanvas);
+
+carregarFontes();
+
 
 function carregarFontes(){
     const selectFontes = document.getElementById('prop-fonte-familia');
@@ -83,10 +151,16 @@ function carregarFontes(){
     }
 }
 
-
-
 function iniciarArrasto(evento) { 
-    evento.dataTransfer.setData("tipo", evento.target.getAttribute("data-tipo")); 
+    const obj = {};
+    const tipo = evento.target.getAttribute("data-tipo");
+    obj["tipo"] = tipo;
+
+    if(tipo === 'imagem'){
+        obj["src"] = evento.target.getAttribute('src');
+    }
+
+    evento.dataTransfer.setData("text/plain", JSON.stringify(obj));
 }
 
 function permitirSoltar(evento) { 
@@ -95,80 +169,60 @@ function permitirSoltar(evento) {
 
 function soltar(evento) {
     evento.preventDefault();
-    const tipo = evento.dataTransfer.getData("tipo");
-    const rect = document.getElementById('canvas-pagina').getBoundingClientRect();
-    criarElementoRelatorio(tipo, evento.clientX - rect.left, evento.clientY - rect.top);
+    let obj = evento.dataTransfer.getData("text/plain");
+    obj = JSON.parse(obj);
+    const tipo = obj["tipo"];
+
+    const objParam = {}
+    if(tipo === 'imagem'){
+        objParam['src'] = obj["src"];
+    }
+
+    const alvo = evento.target;
+    let conteinerElemento;
+
+    if(alvo.closest("#header")){
+        conteinerElemento = alvo.closest("#header");
+    } else if(alvo.closest("#main")){
+        conteinerElemento = alvo.closest("#main");
+    } else if(alvo.closest("#footer")){
+        conteinerElemento = alvo.closest("#footer");
+    }
+    
+    const rect = conteinerElemento.getBoundingClientRect();
+
+    criarElementoRelatorio(tipo, evento.clientX - rect.left, evento.clientY - rect.top, conteinerElemento, objParam);
 }
 
-function obterEsquemaRelatorio() {
-    return Array.from(document.querySelectorAll('.elemento-relatorio')).map(el => {
-        const style = window.getComputedStyle(el);
-
-        // Extrai posição real considerando transform
-        let left = parseFloat(el.style.left) || 0;
-        let top = parseFloat(el.style.top) || 0;
-        let x = parseFloat(el.dataset.x) || 0;
-        let y = parseFloat(el.dataset.y) || 0;
-
-        // Se houver transform, some ao left/top
-        const transform = style.transform;
-        if (transform && transform !== 'none') {
-            const match = transform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
-            if (match) {
-                x = parseFloat(match[1]);
-                y = parseFloat(match[2]);
-            }
-        }
-
-        return {
-            id: el.id,
-            type: el.dataset.tipo,
-            style: {
-                left: (left + x) + 'px',
-                top: (top + y) + 'px',
-                width: el.style.width, height: el.style.height,
-                fontSize: style.fontSize, fontWeight: style.fontWeight,
-                color: style.color, backgroundColor: style.backgroundColor,
-                border: style.border
-            },
-            content: el.dataset.tipo === 'texto' ? el.innerText : null,
-            query: el.dataset.tipo === 'tabela' ? JSON.parse(el.dataset.queryConfig || "{}") : null
-        };
-    });
-}
-
-
-function getCookie(name) {
-    const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
-    return v ? v.pop() : '';
+function getCSRFToken() {
+    const v = document.querySelector("input[name='csrfmiddlewaretoken']");
+    return v.value;
 }
 
 async function gerarRelatorioFinal() {
-    // envia posições relativas ao topo/esquerda da FOLHA (reportCanvas)
-    const items = obterEsquemaRelatorio();
-    const csrftoken = getCookie('csrftoken');
+    const csrftoken = getCSRFToken();
 
-    const resp = await fetch('/gerar_pdf/', {
+    const resp = await fetch(URL_GERAR_PDF, {
         method: 'POST',
-        credentials: 'same-origin',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': csrftoken         // header exigido pelo Django CSRF
+            'X-CSRFToken': csrftoken
         },
         body: JSON.stringify({
-            elementos: items,
             html: getHTML()
         })
     });
 
     if (!resp.ok) {
         const ct = resp.headers.get('content-type') || '';
-        if (ct.includes('application/json')) {
+        let msgErro = '';
+        let detalheErro = '';
+
+        if(ct.includes('application/json')){
             const data = await resp.json();
-            alert('Erro ao gerar PDF: ' + (data.error || JSON.stringify(data)));
-        } else {
-            const text = await resp.text();
-            alert('Erro ao gerar PDF: HTTP ' + resp.status + '\n' + text.slice(0, 1000));
+            msgErro = data.error;
+            detalheErro = data.detail || '';
+            alert(`${msgErro}: ${detalheErro}`);
         }
         return;
     }
@@ -179,15 +233,20 @@ async function gerarRelatorioFinal() {
         const preview = document.createElement('object');
         preview.data = window.URL.createObjectURL(blob);
         preview.type = "application/pdf";
+        preview.innerText = "Não foi possível exibir o relatório gerado. ";
+        const a = document.createElement('a');
+        a.href = preview.data;
+        a.download = "relatorio.pdf";
+        a.innerText = "Baixe o arquivo em PDF.";
+        preview.appendChild(a);
 
-
-        preview.style.height = "297mm";
+        preview.style.height = "240mm";
         preview.style.width = "210mm";
         preview.style.maxWidth = "100%";
 
         const navPreview = document.getElementsByClassName('area-canvas')[0];
-        navPreview.children[0].classList.add('oculto-custom');
-        navPreview.children[1].classList.remove('oculto-custom');
+        navPreview.children[0].classList.add('d-none');
+        navPreview.children[1].classList.remove('d-none');
         navPreview.children[1].innerHTML = '';
         navPreview.children[1].append(preview);
 
@@ -198,32 +257,100 @@ async function gerarRelatorioFinal() {
 }
 
 function getHTML(){
-    return `
-        <!DOCTYPE html>
-        <html lang="pt-br">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <style>
-                .elemento-relatorio { position: absolute; }
-                .pagina-a4 { width: 794px; min-height: 1123px; position: relative; }
-            </style>
-        </head>
-        <body>
-            ${document.getElementById('canvas-pagina').outerHTML}
-        </body>
-        </html>
-    `;    
+    return `${document.getElementById('canvas-pagina').innerHTML}`;
 }
 
-let btnEditor = document.querySelector("#btn-abrir-editor");
-btnEditor.addEventListener("click", () => {
-    const navPreview = document.getElementsByClassName('area-canvas')[0];
-    navPreview.children[0].classList.remove('oculto-custom');
-    navPreview.children[1].classList.add('oculto-custom');
-});
+function salvarModeloRelatorio() {
+    const nome = document.getElementById('relatorio-nome');
+    const html = getHTML();
+    const id = document.getElementById('relatorio-id');
 
-
-function salvarTemplateJson() {
-    console.log(obterEsquemaRelatorio());
+    fetch(URL_SALVAR_RELATORIO, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify({
+            nome: nome.value,
+            html: html,
+            id: id.value
+        })
+    })
+    .then(resp => resp.json())
+    .then(data => {
+        if (data.success) {
+            alert('Modelo salvo com sucesso!');
+            id.value = data.id;
+            $('#salvarModeloRelatorio').modal('hide'); 
+        } else {
+            alert('Erro ao salvar modelo: ' + (data.error || JSON.stringify(data)));
+        }
+    });
 }
+
+async function obterSQL(){
+    const containerSQL = document.querySelector("#codigo-SQL");
+    const cargaUtil = CC.gerarCargaUtil();
+
+    if(cargaUtil.colunas.length === 0){
+        containerSQL.innerHTML = `<p class="px-3 py-4 mb-0 text-center text-danger">Nenhuma coluna foi especificada para a consulta.</p>`;
+        return;
+    }
+
+    containerSQL.innerHTML = `
+        <div class="d-flex justify-content-center">
+            <div class="spinner-border" role="status">
+                <span class="sr-only">Carregando...</span>
+            </div>
+        </div>
+    `;
+
+    const res = await fetch(URL_OBTER_SQL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCSRFToken()
+        },
+        body: JSON.stringify(cargaUtil)
+    });
+
+    if(!res.ok){
+        const ct = res.headers.get('content-type') || '';
+        let msgErro = '';
+        let detalheErro = '';
+
+        if(ct.includes('application/json')){
+            const data = await res.json();
+            msgErro = data.error;
+            detalheErro = data.detail || '';
+        }
+        containerSQL.innerHTML = `<p class="px-3 py-4 mb-0 text-center text-danger">Houve um erro ao obter SQL. ${msgErro}: ${detalheErro}</p>`;
+        return;
+    }
+
+    const json = await res.json();
+    const sql = json['sql'];
+    containerSQL.innerHTML = `<code>${formatarSQL(sql)}</code>`;
+}
+
+// prepara os elementos já existentes no HTML para serem arrastáveis e manipuláveis
+function prepararElementosExistentes(){
+    const elementos = document.getElementsByClassName('elemento-relatorio');
+    Array.from(elementos).forEach(el => {
+        const tipo = el.dataset.tipo;        
+        const objetoInteract = interact(el);
+        tornarElementoArrastavel(objetoInteract);
+
+        if(tipo == 'tabela'){
+            tornarElementoRedimencionavel(objetoInteract, {
+                right: true, left: true, top: false, bottom: false
+            });
+            tornarComponentesDaTabelasRedimensionaveis(objetoInteract.target);
+        } else if (tipo !== 'imagem'){
+            tornarElementoRedimencionavel(objetoInteract);
+        }
+    });
+}
+
+prepararElementosExistentes();

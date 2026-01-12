@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modelos de relatório salvos</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col">
+                <h1 class="my-5 text-center">Índice</h1>
+                <ul>
+                    <li><a href="{% url "novo" %}">Novo relatório</a></li>
+                    <li><a href="{% url "listar_relatorio" %}">Lista de relatórios</a></li>
+                    <li><a href="{% url "testar_html" %}">Ver diretamento o último HTML gerado pelo editor</a></li>
+                    <li><a href="{% url "testar_pdf" %}">Ver o último PDF gerado pelo editor</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

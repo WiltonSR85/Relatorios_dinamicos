@@ -4,294 +4,385 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador de relatório SAMU</title>
+    <title>Gerador de relatório</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="{% static 'index.css' %}">
 </head>
 
 <body>
-    
+    {% csrf_token %}
     <nav class="navbar navbar-dark bg-dark shadow-sm">
-        <span class="navbar-brand mb-0 h1"><i class="bi bi-file-earmark-pdf-fill"></i>Gerador de relatórios SAMU</span>
-        <div>
-            <button class="btn btn-outline-light btn-sm mr-2" id="btn-abrir-editor">
+        <span class="navbar-brand mb-0 h1">
+            <i class="bi bi-file-earmark-pdf-fill"></i> Gerador de relatórios
+        </span>
+        <div class="d-flex">
+            <button type="button" class="btn btn-outline-light btn-sm mr-2" id="btn-abrir-editor">
                 <i class="bi bi-pen"></i> Editor
             </button>
-            <button class="btn btn-outline-light btn-sm mr-2" id="btn-salvar-modelo">
+            <button type="button" class="btn btn-outline-light btn-sm mr-2" id="btn-salvar-modelo" data-toggle="modal" data-target="#salvarModeloRelatorio">
                 <i class="bi bi-save"></i> Salvar modelo
             </button>
-            <button class="btn btn-primary btn-sm" id="btn-gerar-relatorio">
+            <button type="button" class="btn btn-primary btn-sm" id="btn-gerar-relatorio">
                 <i class="bi bi-printer"></i> Visualizar relatório
             </button>
         </div>
     </nav>
 
-    <div class="container-fluid container-construtor">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12 col-lg-2 barra-lateral p-3">
+                <div class="h6 text-muted font-weight-bold text-uppercase small mb-3 border-bottom pb-2">Componentes</div>
+                <div class="item-arrastavel" draggable="true" data-tipo="h1"><i class="bi bi-type-h1 text-success"></i> Título 1</div>
+                <div class="item-arrastavel" draggable="true" data-tipo="h2"><i class="bi bi-type-h2 text-success"></i> Título 2</div>
+                <div class="item-arrastavel" draggable="true" data-tipo="texto"><i class="bi bi-fonts text-primary"></i> Texto livre</div>
+                <div class="item-arrastavel" draggable="true" data-tipo="tabela"><i class="bi bi-table text-success"></i> Tabela de dados</div>
 
-        <div class="barra-lateral-esquerda">
-            <h6 class="text-muted font-weight-bold text-uppercase small mb-3">Componentes</h6>
-            <div class="item-arrastavel" draggable="true" data-tipo="h1"><i class="bi bi-type-h1 text-success"></i> Título 1</div>
-            <div class="item-arrastavel" draggable="true" data-tipo="h2"><i class="bi bi-type-h2 text-success"></i> Título 2</div>
-            <div class="item-arrastavel" draggable="true" data-tipo="texto"><i class="bi bi-fonts text-primary"></i> Texto livre</div>
-            <div class="item-arrastavel" draggable="true" data-tipo="tabela"><i class="bi bi-table text-success"></i> Tabela de dados</div>
+                <div>
+                    <div class="text-muted font-weight-bold text-uppercase small mb-2">Imagens</div>
+                    <div class="container-imagens d-flex flex-wrap p-2 rounded">
+                        <img class="logo-pdf item-arrastavel" src="{% static 'imgs/pdf/logo-samu192.png' %}" alt="Logo SAMU" data-tipo="imagem" draggable="true">
+                        <img class="logo-pdf item-arrastavel" src="{% static 'imgs/pdf/logo-gbi.png' %}" alt="Logo Guanambi" data-tipo="imagem" draggable="true">
+                        <img class="logo-pdf item-arrastavel" src="{% static 'imgs/pdf/logo-sus.png' %}" alt="Logo SUS" data-tipo="imagem" draggable="true">
+                        <img class="logo-pdf item-arrastavel" src="{% static 'imgs/pdf/logo-if.png' %}" alt="Logo IF" data-tipo="imagem" draggable="true">
+                    </div>
+                </div>
 
-            <div class="alert alert-info small mt-4"><i class="bi bi-info-circle"></i> Arraste um componente para o papel ao lado.
-            </div>
-        </div>
-
-        <div class="area-canvas">
-            <div id="canvas-pagina" class="pagina-a4 dropzone">
-                <header style="height:150px;"></header>
-                <footer style="height:150px; position: absolute; bottom: 0; left:0; right:0;"></footer>
-            </div>
-            <div id="ver-pdf" class="oculto-custom"></div>
-        </div>
-
-        <div class="barra-lateral-direita">
-            <h6 class="text-muted font-weight-bold text-uppercase small mb-3 border-bottom pb-2">Propriedades</h6>
-
-            <div id="propriedades-vazio" class="text-center text-muted py-5">
-                <i class="bi bi-cursor mb-2" style="font-size: 2rem;"></i>
-                <p class="small">Selecione um elemento.</p>
+                <div class="alert alert-info small mt-4"><i class="bi bi-info-circle">
+                    </i> Arraste um componente para o papel ao lado.
+                </div>
             </div>
 
-            <div id="painel-propriedades" class="oculto-custom">
-                
-                <div id="grupo-prop-tabela" class="oculto-custom mb-3 border rounded p-2 bg-light">
-                    <label class="small font-weight-bold text-success"><i class="bi bi-database"></i> Dados da
-                        tabela</label>
-                        <button class="btn btn-success btn-sm btn-block" id="btn-configurar-consulta">
+            <div class="col-12 col-lg-7 area-canvas p-4">
+                <div id="canvas-pagina" class="pagina-a4">
+                    {% if relatorio %}
+                        {{ relatorio.html|safe }}
+                    {% else %}
+                        <header id="header"></header>
+                        <main id="main"></main>
+                        <footer id="footer"></footer>
+                    {% endif %}
+                </div>
+                <div id="ver-pdf" class="d-none"></div>
+            </div>
+
+            <div class="col-12 col-lg-3 barra-lateral p-3">
+                <div class="h6 text-muted font-weight-bold text-uppercase small mb-3 border-bottom pb-2">Propriedades</div>
+
+                <div id="propriedades-vazio" class="text-center text-muted py-5">
+                    <i class="bi bi-cursor mb-2" style="font-size: 2rem;"></i>
+                    <p class="small">Selecione um elemento.</p>
+                </div>
+
+                <div id="painel-propriedades" class="d-none">
+                    
+                    <div id="grupo-prop-tabela" class="d-none mb-3 border rounded p-2 bg-light">
+                        <div class="small font-weight-bold text-success mb-2">
+                            <i class="bi bi-database"></i> Dados da tabela
+                        </div>
+                        <button type="button" class="btn btn-success btn-sm btn-block" id="btn-configurar-consulta">
                             <i class="bi bi-gear-fill"></i> Configurar consulta
                         </button>
-                        <div id="status-consulta" class="small mt-2 text-center text-muted">(Não configurado)</div>
+                    </div>
+
+
+                    <div id="grupo-prop-conteudo-texto" class="form-group mb-2 d-none">
+                        <label for="prop-texto-conteudo" class="small font-weight-bold">Conteúdo</label>
+                        <textarea id="prop-texto-conteudo" class="form-control form-control-sm" rows="3"></textarea>
+                    </div>
+
+                    <div class="h6 small font-weight-bold text-muted mt-3">Estilo</div>
+
+                    <div class="form-group mb-2">
+                        <label class="small" for="prop-fonte-familia">Fonte</label>
+                        <select id="prop-fonte-familia" class="custom-select custom-select-sm">
+                            
+                        </select>
+                    </div>
+
+                    <div class="form-group mb-2">
+                        <span class="small d-block mb-2">Alinhamento</span>
+                        <div class="btn-group w-100" role="group" aria-label="Alinhamento de texto" id="prop-botoes-alinhamento">
+                            <button type="button" class="btn btn-outline-secondary btn-sm btn-align" data-align="left" title="Esquerda" aria-label="Alinhar à esquerda">
+                                <i class="bi bi-text-left"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm btn-align" data-align="center" title="Centro" aria-label="Alinhar ao centro">
+                                <i class="bi bi-text-center"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm btn-align" data-align="right" title="Direita" aria-label="Alinhar à direita">
+                                <i class="bi bi-text-right"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm btn-align" data-align="justify" title="Justificado" aria-label="Alinhar justificado">
+                                <i class="bi bi-justify"></i>
+                            </button>
+                        </div>
                     </div>
                     
-                    
-                <!-- Oculto por enquanto -->
-                <div id="grupo-prop-tabela" class="oculto-custom mb-3 border rounded p-2 bg-light">
-                    <label class="small font-weight-bold text-success"> Elemento </label>
-                    <select id="prop-elemento-tabela" class="custom-select custom-select-sm">
-                        <option value="tabela">Tabela</option>
-                        <option value="thead">Cabeçalho</option>
-                        <option value="tr">Linha</option>
-                        <option value="th">Células</option>
-                    </select>
-                </div>
-
-                <div id="grupo-prop-conteudo-texto" class="form-group mb-2 oculto-custom">
-                    <label for="prop-texto-conteudo" class="small font-weight-bold">Conteúdo</label>
-                    <textarea id="prop-texto-conteudo" class="form-control form-control-sm" rows="3"></textarea>
-                </div>
-
-                <hr>
-                <h6 class="small font-weight-bold text-muted mt-3">Estilo</h6>
-
-                <div class="form-group mb-2">
-                    <label class="small">Fonte</label>
-                    <select id="prop-fonte-familia" class="custom-select custom-select-sm">
-                        
-                    </select>
-                </div>
-
-                <div class="form-group mb-2">
-                    <label class="small d-block">Alinhamento</label>
-                    <div class="btn-group w-100" role="group" aria-label="Alinhamento de texto" id="prop-botoes-alinhamento">
-                        <button type="button" class="btn btn-outline-secondary btn-sm btn-align" data-align="left" title="Esquerda">
-                            <i class="bi bi-text-left"></i>
-                        </button>
-                        <button type="button" class="btn btn-outline-secondary btn-sm btn-align" data-align="center" title="Centro">
-                            <i class="bi bi-text-center"></i>
-                        </button>
-                        <button type="button" class="btn btn-outline-secondary btn-sm btn-align" data-align="right" title="Direita">
-                            <i class="bi bi-text-right"></i>
-                        </button>
-                        <button type="button" class="btn btn-outline-secondary btn-sm btn-align" data-align="justify" title="Justificado">
-                            <i class="bi bi-justify"></i>
-                        </button>
+                    <div class="form-row mb-2">
+                        <div class="col-6">
+                            <label class="small" for="prop-cor-fundo">Fundo</label>
+                            <input type="color" id="prop-cor-fundo" class="form-control form-control-sm p-0 border-0">
+                        </div>
+                        <div class="col-6">
+                            <label class="small" for="prop-cor-texto">Texto</label>
+                            <input type="color" id="prop-cor-texto" class="form-control form-control-sm p-0 border-0">
+                        </div>
                     </div>
+                    <div class="form-row mb-2">
+                        <div class="col-6">
+                            <label class="small" for="prop-tamanho-fonte">Tam. (px)</label>
+                            <input type="number" id="prop-tamanho-fonte" class="form-control form-control-sm">
+                        </div>
+                        <div class="col-6">
+                            <label class="small" for="prop-peso-fonte">Peso</label>
+                            <select id="prop-peso-fonte" class="custom-select custom-select-sm">
+                                <option value="normal">Normal</option>
+                                <option value="bold">Negrito</option>
+                            </select></div>
+                    </div>
+                    <div class="form-group mb-2">
+                        <label class="small" for="prop-borda">Borda</label>
+                        <select id="prop-borda" class="custom-select custom-select-sm">
+                            <option value="none">Nenhuma</option>
+                            <option value="1px solid #000">Sólida fina</option>
+                            <option value="1px dashed #666">Tracejada</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-danger btn-sm btn-block mt-4" id="btn-deletar-elemento">Remover elemento</button>
                 </div>
-                
-                <div class="form-row mb-2">
-                    <div class="col-4"><label class="small">Fundo</label><input type="color" id="prop-cor-fundo" class="form-control form-control-sm"></div>
-                    <div class="col-4"><label class="small">Texto</label><input type="color" id="prop-cor-texto" class="form-control form-control-sm"></div>
-                    <div class="col-4"><label class="small">Cor da borda</label><input type="color" id="prop-cor-borda" class="form-control form-control-sm"></div>
-                </div>
-                <div class="form-row mb-2">
-                    <div class="col-6"><label class="small">Tam. (px)</label><input type="number" id="prop-tamanho-fonte"
-                            class="form-control form-control-sm"></div>
-                    <div class="col-6"><label class="small">Peso</label><select id="prop-peso-fonte"
-                            class="custom-select custom-select-sm">
-                            <option value="normal">Normal</option>
-                            <option value="bold">Negrito</option>
-                        </select></div>
-                </div>
-                <div class="form-group mb-2">
-                    <label class="small">Borda</label>
-                    <select id="prop-borda" class="custom-select custom-select-sm">
-                        <option value="none">Nenhuma</option>
-                        <option value="1px solid #000">Sólida fina</option>
-                        <option value="1px dashed #666">Tracejada</option>
-                    </select>
-                </div>
-                <button class="btn btn-danger btn-sm btn-block mt-4" id="btn-deletar-elemento">Remover elemento</button>
             </div>
         </div>
     </div>
 
     <div class="modal fade" id="modalConstrutorConsulta" tabindex="-1" data-backdrop="static" data-keyboard="false">
-        <div class="modal-dialog modal-xl-customizado modal-dialog-scrollable">
+        <div class="modal-dialog modal-xl-customizado">
             <div class="modal-content">
                 <div class="modal-header bg-dark text-white">
-                    <h5 class="modal-title"><i class="bi bi-diagram-3-fill"></i> Construtor de consulta (SQL Visual)
-                    </h5>
-                    <button type="button" class="close text-white" data-dismiss="modal"><span>&times;</span></button>
+                    <div class="h5 modal-title"><i class="bi bi-diagram-3-fill">
+                        </i> Construtor de consulta
+                    </div>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Fechar">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
                 <div class="modal-body bg-light">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col">
 
-                    <div class="row">
-                        <div class="col-lg-8">
-
-                            <div class="card shadow-sm mb-4">
-                                <div class="card-header bg-primary text-white">
-                                    <i class="bi bi-database-fill-gear"></i> 1. Mapeamento de tabelas (junções)
-                                </div>
-                                <div class="card-body">
-                                    <div class="form-row align-items-end mb-3">
-                                        <div class="col-md-4">
-                                            <label class="font-weight-bold small">Entidade principal</label>
-                                            <select class="custom-select" id="select-raiz">
+                                <div class="card shadow-sm mb-4">
+                                    <div class="card-header bg-primary text-white">
+                                        <i class="bi bi-database-fill-gear"></i> 1. Mapeamento de tabelas (junções)
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="form-group row mb-3">
+                                            <label class="col-md-4 col-form-label font-weight-bold small" for="select-raiz">Tabela principal</label>
+                                            <div class="col-md-8">
+                                                <select class="custom-select" id="select-raiz">
                                                 <option value="" selected disabled>Carregando...</option>
                                             </select>
-                                        </div>
-                                        <div class="col-md-8 text-muted small d-flex align-items-center mt-2 mt-md-0">
-                                            <i class="bi bi-info-circle mr-1"></i> Selecione a tabela raiz carregada do
-                                            arquivo JSON.
-                                        </div>
-                                    </div>
-
-                                    <div id="container-tabelas" class="border rounded p-3 bg-light oculto-custom">
-                                        <h6 class="font-weight-bold text-secondary mb-3">Estrutura da Consulta:</h6>
-                                        <div id="lista-tabelas">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div id="wrapper-secoes" class="oculto-custom">
-                                <div class="col-lg-12 mb-4">
-                                    <div class="card shadow-sm h-100 border-success"
-                                        style="border-top: 4px solid #198754;">
-                                        <div class="card-header bg-white text-success">
-                                            <i class="bi bi-table"></i> 2. Colunas e métricas
-                                        </div>
-                                        <div class="card-body">
-                                            <div class="form-row align-items-end mb-3">
-                                                <div class="col-md-3">
-                                                    <label class="small font-weight-bold text-muted">Origem</label>
-                                                    <select class="custom-select" id="select-col-tabela"></select>
-                                                </div>
-                                                <div class="col-md-4">
-                                                    <label class="small font-weight-bold text-muted">Campo</label>
-                                                    <select class="custom-select" id="select-col-campo" disabled>
-                                                        <option value="" disabled selected>Selecione...</option>
-                                                    </select>
-                                                </div>
-                                                <div class="col-md-3">
-                                                    <label class="small font-weight-bold text-muted">Função
-                                                        (Agregação)</label>
-                                                    <select class="custom-select" id="select-col-agregacao">
-                                                        <option value="">Nenhuma</option>
-                                                        <option value="Count">Contagem</option>
-                                                        <option value="Sum">Soma</option>
-                                                        <option value="Avg">Média</option>
-                                                        <option value="Min">Mínimo</option>
-                                                        <option value="Max">Máximo</option>
-                                                    </select>
-                                                </div>
-                                                <div class="col-md-2 mt-2 mt-md-0">
-                                                    <button class="btn btn-success btn-block" id="btn-add-coluna"
-                                                        disabled>Incluir</button>
-                                                </div>
                                             </div>
-
-                                            <div id="lista-colunas-selecionadas" class="d-flex flex-wrap mt-3">
+                                        </div>
+                                        
+                                        <div id="container-tabelas" class="border rounded p-3 bg-light d-none">
+                                            <div class="h6 font-weight-bold text-secondary mb-3">Estrutura da consulta:</div>
+                                            <div id="lista-tabelas">
                                             </div>
-
-                                            <span id="msg-sem-colunas" class="text-muted small w-100 text-center py-3 border border-dashed d-block">
-                                                Nenhuma coluna selecionada.
-                                            </span>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div class="col-lg-12 mb-4">
-                                    <div class="card shadow-sm h-100 border-warning"
-                                        style="border-top: 4px solid #ffc107;">
-                                        <div class="card-header bg-white text-dark">
-                                            <i class="bi bi-funnel-fill text-warning"></i> 3. Filtros
+                                <div id="wrapper-secoes" class="d-none">
+                                    <div class="col-lg-12 px-0 mb-4">
+                                        <div class="card shadow-sm h-100 border-success">
+                                            <div class="card-header bg-white text-success">
+                                                <i class="bi bi-table"></i> 2. Colunas
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="form-row align-items-end mb-3">
+                                                    <div class="col-md-3">
+                                                        <label class="small font-weight-bold text-muted" for="select-col-tabela">Tabela</label>
+                                                        <select class="custom-select" id="select-col-tabela"></select>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <label class="small font-weight-bold text-muted" for="select-col-campo">Campo</label>
+                                                        <select class="custom-select" id="select-col-campo" disabled>
+                                                            <option value="" disabled selected>Selecione...</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <label class="small font-weight-bold text-muted" for="select-col-agregacao">Função (agregação)</label>
+                                                        <select class="custom-select" id="select-col-agregacao">
+                                                            <option value="">Nenhuma</option>
+                                                            <option value="Count">Contagem</option>
+                                                            <option value="Sum">Soma</option>
+                                                            <option value="Avg">Média</option>
+                                                            <option value="Min">Mínimo</option>
+                                                            <option value="Max">Máximo</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <label class="small font-weight-bold text-muted" for="input-col-rotulo">Nome para o cabeçalho da coluna</label>
+                                                        <input type="text" class="form-control" id="input-col-rotulo">
+                                                    </div>
+                                                    <div class="col-md-2 mt-2 mt-md-0">
+                                                        <button type="button" class="btn btn-success btn-block" id="btn-add-coluna" disabled>Incluir</button>
+                                                    </div>
+                                                </div>
+
+                                                <div id="lista-colunas-selecionadas" class="d-flex flex-wrap mt-3">
+                                                </div>
+
+                                                <div id="msg-sem-colunas" class="text-muted small w-100 text-center py-3 border border-dashed">
+                                                    Nenhuma coluna selecionada.
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div class="card-body">
-                                            <div class="form-row mb-3 bg-light p-2 rounded border mx-0">
-                                                <div class="col-md-3">
-                                                    <select class="custom-select custom-select-sm"
-                                                        id="select-filtro-tabela"></select>
+                                    </div>
+
+                                    <div class="col-lg-12 px-0 mb-4">
+                                        <div class="card shadow-sm h-100 border-warning">
+                                            <div class="card-header bg-white text-warning">
+                                                <i class="bi bi-funnel-fill text-warning"></i> 3. Filtros
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="form-row align-items-end mb-3">
+                                                    <div class="col-md-3">
+                                                        <label class="small font-weight-bold text-muted" for="select-filtro-tabela">Tabela</label>
+                                                        <select class="custom-select" id="select-filtro-tabela"></select>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <label class="small font-weight-bold text-muted" for="select-filtro-campo">Campo</label>
+                                                        <select class="custom-select" id="select-filtro-campo" disabled>
+                                                            <option value="" disabled selected>Selecione...</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <label class="small font-weight-bold text-muted" for="select-filtro-operador">Operador</label>
+                                                        <select class="custom-select" id="select-filtro-operador">
+                                                            <option value="exact">Igual (=)</option>
+                                                            <option value="icontains">Contém</option>
+                                                            <option value="gte">Maior ou igual (>=)</option>
+                                                            <option value="lte">Menor ou igual (<=)</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <label class="small font-weight-bold text-muted" for="input-filtro-valor">Valor</label>
+                                                        <input type="text" class="form-control" id="input-filtro-valor">
+                                                    </div>
+                                                    <div class="col-md-2 mt-2 mt-md-0">
+                                                        <button type="button" class="btn btn-warning btn-block" id="btn-add-filtro" disabled>Incluir</button>
+                                                    </div>
                                                 </div>
-                                                <div class="col-md-3">
-                                                    <select class="custom-select custom-select-sm"
-                                                        id="select-filtro-campo" disabled>
-                                                        <option value="" disabled selected>Campo...</option>
-                                                    </select>
+                                                <div id="container-tabela-filtros" class="d-none">
+                                                    <table class="table table-sm table-hover mb-0">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Campo</th>
+                                                                <th>Operador</th>
+                                                                <th>Valor</th>
+                                                                <th></th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="tbody-filtros"></tbody>
+                                                    </table>
                                                 </div>
-                                                <div class="col-md-2">
-                                                    <select class="custom-select custom-select-sm"
-                                                        id="select-filtro-operador">
-                                                        <option value="exact">Igual (=)</option>
-                                                        <option value="icontains">Contém</option>
-                                                        <option value="gte">Maior Igual (>=)</option>
-                                                        <option value="lte">Menor Igual (<=)</option>
-                                                        <option value="isnull">É Nulo?</option>
-                                                    </select>
-                                                </div>
-                                                <div class="col-md-3">
-                                                    <input type="text" class="form-control form-control-sm"
-                                                        id="input-filtro-valor" placeholder="Valor...">
-                                                </div>
-                                                <div class="col-md-1">
-                                                    <button class="btn btn-warning btn-sm btn-block" id="btn-add-filtro"
-                                                        disabled>+</button>
+
+                                                <div id="msg-sem-filtros" class="text-muted small w-100 text-center py-3 border border-dashed">
+                                                    Nenhum filtro aplicado.
                                                 </div>
                                             </div>
-                                            <div id="container-tabela-filtros" class="oculto-custom">
-                                                <table class="table table-sm table-hover mb-0">
-                                                    <thead class="thead-light">
-                                                        <tr>
-                                                            <th>Campo</th>
-                                                            <th>Operador</th>
-                                                            <th>Valor</th>
-                                                            <th></th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody id="tbody-filtros"></tbody>
-                                                </table>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-12 px-0 mb-4">
+                                        <div class="card shadow-sm h-100 border-info">
+                                            <div class="card-header bg-white text-info">
+                                                <i class="bi bi-sort-alpha-down text-info"></i> 4. Ordenações
                                             </div>
-                                            <span id="msg-sem-filtros" class="text-muted small">Nenhum filtro aplicado.</span>
+                                            <div class="card-body">
+                                                <div class="form-row align-items-end mb-3">
+                                                    <div class="col-md-4">
+                                                        <label class="small font-weight-bold text-muted" for="select-ordenacao-tabela">Tabela</label>
+                                                        <select class="custom-select" id="select-ordenacao-tabela"></select>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <label class="small font-weight-bold text-muted" for="select-ordenacao-campo">Campo</label>
+                                                        <select class="custom-select" id="select-ordenacao-campo" disabled>
+                                                            <option value="" disabled selected>Selecione...</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <label class="small font-weight-bold text-muted" for="select-ordenacao-ordem">Ordem</label>
+                                                        <select class="custom-select" id="select-ordenacao-ordem">
+                                                            <option value="ASC">Crescente (A-Z)</option>
+                                                            <option value="DESC">Decrescente (Z-A)</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="col-md-2 mt-2 mt-md-0">
+                                                        <button type="button" class="btn btn-info btn-block" id="btn-add-ordenacao" disabled>Incluir</button>
+                                                    </div>
+                                                </div>
+                                                <div id="container-tabela-ordenacao" class="d-none">
+                                                    <table class="table table-sm table-hover mb-0">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Campo</th>
+                                                                <th>Ordem</th>
+                                                                <th></th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody id="tbody-ordenacao"></tbody>
+                                                    </table>
+                                                </div>
+
+                                                <div id="msg-sem-ordenacao" class="text-muted small w-100 text-center py-3 border border-dashed">
+                                                    Nenhuma ordenação aplicada.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-12 px-0 mb-4">
+                                        <div class="card shadow-sm h-100 border-dark">
+                                            <div class="card-header bg-white text-dark">
+                                                <i class="bi bi-sort-down text-dark"></i> 5. Limite
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="form-group row mb-3">
+                                                    <label class="col-9 col-form-label font-weight-bold text-muted" for="input-limite-valor">Número máximo de linhas da tabela</label>
+                                                    <div class="col-md-3">
+                                                        <input type="number" class="form-control" id="input-limite-valor" value="50"  step="10" min="0">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-12 px-0 mb-4">
+                                        <button class="btn btn-light btn-sm btn-block mt-4" type="button" data-toggle="collapse" data-target="#collapseSQL" aria-expanded="false" aria-controls="collapseSQL" id="btn-obter-sql">
+                                            Visualizar SQL gerada
+                                        </button>
+                                        <div class="card collapse mt-3" id="collapseSQL">
+                                            <div class="card card-body" id="codigo-SQL">
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
-                        <div class="col-lg-4">
-                            <div class="card shadow sticky-top" style="top: 20px;">
-                                <div class="card-header bg-dark text-white">Carga útil em JSON</div>
-                                <div class="card-body bg-dark">
-                                    <pre class="mb-0 small" id="saida-json">{}</pre>
+                        
+                        <div class="row">
+                            <div class="col">
+                                <div class="card shadow">
+                                    <div class="card-header bg-dark text-white">Carga útil em JSON</div>
+                                    <div class="card-body bg-dark">
+                                        <pre class="mb-0 small" id="saida-json">{}</pre>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-
                 </div>
                 <div class="modal-footer bg-white">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
@@ -300,6 +391,33 @@
                     </button>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal para salvar modelo de relatório -->
+    <div class="modal fade" id="salvarModeloRelatorio" tabindex="-1" aria-labelledby="salvarModeloRelatorioLabel">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <div class="h5 modal-title" id="salvarModeloRelatorioLabel">Salvar modelo de relatório</div>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+                        <span aria-hidden="true" class="text-white">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                    <div class="form-group">
+                        <label for="relatorio-nome" class="col-form-label">Nome do relatório</label>
+                        <input type="text" class="form-control" id="relatorio-nome" value="{{ relatorio.nome }}">
+                        <input type="hidden" id="relatorio-id" value="{{ relatorio.id }}">
+                    </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fechar</button>
+                    <button type="button" class="btn btn-primary" id="btn-confirmar-salvar-modelo">Salvar</button>
+                </div>
+                </div>
         </div>
     </div>
 
