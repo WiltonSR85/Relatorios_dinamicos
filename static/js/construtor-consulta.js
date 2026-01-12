@@ -54,18 +54,18 @@ export function abrirConstrutorConsulta() {
     const cfg = JSON.parse(elementoSelecionado.dataset.configConsulta || "{}");
     
     if (cfg.fonte_principal) {
-        console.log(cfg);
         sel.value = cfg.fonte_principal;
-        // o problema está aqui->  iniciarRaiz(cfg.fonte_principal);
-
-        estadoGlobal.colunas = cfg.colunas || [];
-        estadoGlobal.filtros = cfg.filtros || [];
-        estadoGlobal.ordenacoes = cfg.ordenacoes || [];
+        estadoGlobal.modeloRaiz = cfg.fonte_principal;
+        estadoGlobal.tabelas = cfg.tabelas;
+        estadoGlobal.colunas = cfg.colunas;
+        estadoGlobal.filtros = cfg.filtros;
+        estadoGlobal.ordenacoes = cfg.ordenacoes;
         
         if(cfg.limite){
             estadoGlobal.limite = cfg.limite;
         }
-        
+        renderizarTudo();
+
     } else {
         redefinirConstrutorConsulta();
     }
@@ -138,34 +138,33 @@ export function iniciarRaiz(nomeModelo) {
     let limite = document.getElementById('input-limite-valor').value;
     estadoGlobal.limite = Number(limite) || null;
 
-    const rotulo = nomeModelo;
-    carregarTabela(nomeModelo, rotulo, "", "Raiz");
+    const nomeAmigavel = nomeModelo;
+    carregarTabela(nomeModelo, nomeAmigavel, "", "", "", "Raiz");
     renderizarTudo();
 }
 
-export function carregarTabela(nomeModelo, nomeAmigavel, caminhoPrefixo, tipo) {
-    const esquema = ESQUEMA_DB[nomeModelo];
-    if (!esquema) return;
-
+export function carregarTabela(modeloDestino, nomeAmigavel, caminhoPrefixo, campoRelacao, modeloAnterior, tipo) {
     estadoGlobal.tabelas.push({
-        id: Math.random().toString(36).substr(2, 9),
-        model: nomeModelo,
+        id: Math.random().toString(36).substring(2, 9),
+        model: modeloDestino,
+        modelo_anterior: modeloAnterior || "",
         nome_amigavel: nomeAmigavel,
         caminho: caminhoPrefixo,
-        campos: esquema.campos || [],
-        conexoes_disponiveis: esquema.conexoes || [],
+        campo_relacao: campoRelacao,
         tipo: tipo
     });
 }
 
 export function adicionarJuncao(tabelaPaiId, conexaoIdx) {
     const tabelaPai = estadoGlobal.tabelas.find(t => t.id === tabelaPaiId);
-    if (!tabelaPai) return;
+    if (!tabelaPai) 
+        return;
 
-    const conn = tabelaPai.conexoes_disponiveis[conexaoIdx];
+    const conexoes = ESQUEMA_DB[tabelaPai.model].conexoes;
+    const conn = conexoes[conexaoIdx];
     const prefixo = tabelaPai.caminho + conn.campo_relacao + "__";
-
-    carregarTabela(conn.model_destino, conn.nome_amigavel, prefixo, "Junção");
+    
+    carregarTabela(conn.model_destino, conn.nome_amigavel, prefixo, conn.campo_relacao, tabelaPai.model, "Junção");
     renderizarTudo();
 }
 
@@ -173,33 +172,33 @@ export function adicionarColuna() {
     const tableIdx = document.getElementById('select-col-tabela').value;
     const fieldVal = document.getElementById('select-col-campo').value;
     const agg = document.getElementById('select-col-agregacao').value;
-    const rotulo = document.getElementById('input-col-rotulo').value;
+    const rotuloPersonalizado = document.getElementById('input-col-rotulo').value;
 
     if (tableIdx === "" || fieldVal === "") 
         return;
 
     const tab = estadoGlobal.tabelas[tableIdx];
-    const campoObj = tab.campos.find(c => c.valor === fieldVal);
+    const campos = ESQUEMA_DB[tab.model].campos;
+    const campoObj = campos.find(c => c.valor === fieldVal);
     const caminho = tab.caminho + fieldVal;
     let rotuloExibicao;
 
     if(agg){
-        if(rotulo){
-            rotuloExibicao = rotulo;
+        if(rotuloPersonalizado){
+            rotuloExibicao = rotuloPersonalizado;
         } else {
             rotuloExibicao = `${agg} de ${campoObj.rotulo}`;
         }
-    } else if(rotulo){
-        rotuloExibicao = rotulo;
+    } else if(rotuloPersonalizado){
+        rotuloExibicao = rotuloPersonalizado;
     } else {
         rotuloExibicao = campoObj.rotulo;
     }
 
     estadoGlobal.colunas.push({
         tabela_origem: tab.nome_amigavel,
-        caminho_final: caminho,
-        rotulo: campoObj.rotulo,
-        rotulo_exibicao: rotuloExibicao,
+        campo: caminho,
+        rotulo: rotuloExibicao,
         agregacao: agg || null
     });
 
@@ -224,7 +223,8 @@ export function adicionarFiltro() {
     const operador = document.getElementById('select-filtro-operador').value;
     const valor = document.getElementById('input-filtro-valor').value;
 
-    if (tableIdx === "" || fieldVal === "") return;
+    if (tableIdx === "" || fieldVal === "") 
+        return;
 
     const tab = estadoGlobal.tabelas[tableIdx];
     estadoGlobal.filtros.push({
@@ -249,7 +249,8 @@ export function adicionarOrdenacao() {
     const fieldVal = document.getElementById('select-ordenacao-campo').value;
     const ordem = document.getElementById('select-ordenacao-ordem').value;
 
-    if (tableIdx === "" || fieldVal === "") return;
+    if (tableIdx === "" || fieldVal === "") 
+        return;
 
     const tab = estadoGlobal.tabelas[tableIdx];
     estadoGlobal.ordenacoes.push({
@@ -272,9 +273,13 @@ export function adicionarLimite(valor) {
     renderizarJson();
 }
 
-export function isTabelaJaAdicionada(caminhoPai, campoRel) {
-    const check = caminhoPai + campoRel + "__";
-    return estadoGlobal.tabelas.some(t => t.caminho === check);
+export function isTabelaJaAdicionada(modelo, modeloDestino) {
+    /** se houver uma tabela com os mesmos modelo anterior e modelo de destino, retorna true; 
+     * por exemplo, se já existe uma tabela que tem "Base" como modelo_anterior e "Unidade" como modelo, 
+     * então não deve ser possível adicionar outra tabela que também tenha "Base" como modelo_anterior e "Unidade" como modelo */
+    return estadoGlobal.tabelas.some(t => {
+        return (t.modelo_anterior == modelo && t.model == modeloDestino);
+    });
 }
 
 export function atualizarSelectCampos(tabelaIdx, idSelectAlvo, idBtn) {
@@ -290,7 +295,8 @@ export function atualizarSelectCampos(tabelaIdx, idSelectAlvo, idBtn) {
     }
 
     const tab = estadoGlobal.tabelas[tabelaIdx];
-    tab.campos.forEach(campo => {
+    const campos = ESQUEMA_DB[tab.model].campos;
+    campos.forEach(campo => {
         const opt = document.createElement('option');
         opt.value = campo.valor;
         opt.text = campo.rotulo;
@@ -330,31 +336,83 @@ export function renderizarEstruturaTabelas() {
     const container = document.getElementById('lista-tabelas');
     container.innerHTML = '';
 
-    estadoGlobal.tabelas.forEach(tab => {
-        const div = document.createElement('div');
-        div.className = "mb-2 p-2 bg-white border rounded shadow-sm d-flex flex-wrap align-items-center justify-content-between";
-
+    estadoGlobal.tabelas.forEach((tab, indice) => {
+        const containerTabela = document.createElement('div'); // envolve o nome da tabela e suas conexões
+        containerTabela.className = "mb-2 p-2 bg-white border rounded shadow-sm";
+        const conexoes = ESQUEMA_DB[tab.model].conexoes;
         let btnsHtml = '';
-        if (tab.conexoes_disponiveis.length > 0) {
+
+        if (conexoes.length > 0) {
             btnsHtml = `
                 <div class="d-flex align-items-center flex-wrap mt-2 mt-md-0" style="gap: 0.5rem;">
                     <small class="text-muted mr-2">Conectar:</small>
             `;
-            tab.conexoes_disponiveis.forEach((conn, idx) => {
-                const disabled = isTabelaJaAdicionada(tab.caminho, conn.campo_relacao) ? 'disabled' : '';
-                const btnClass = disabled ? 'btn-outline-secondary' : 'btn-outline-dark';
-                btnsHtml += `<button class="btn ${btnClass} btn-sm mr-1 btn-add-join" ${disabled} data-tab-id="${tab.id}" data-conn-idx="${idx}">+ ${conn.nome_amigavel}</button>`;
+            conexoes.forEach((conn, idx) => {
+                let desabilitado = '';
+                
+                if(isTabelaJaAdicionada(tab.model, conn.model_destino)){
+                    desabilitado = 'disabled';
+                }
+
+                const btnClass = desabilitado ? 'btn-outline-secondary' : 'btn-outline-dark';
+                btnsHtml += `<button type="button" class="btn ${btnClass} btn-sm mr-1 btn-add-join" ${desabilitado} data-tab-id="${tab.id}" data-conn-idx="${idx}">+ ${conn.nome_amigavel}</button>`;
             });
             btnsHtml += `</div>`;
         }
+
+        const div = document.createElement('div'); // envolve o nome da tabela e o botão de remover
+        div.classList.add("d-flex", "justify-content-between", "flex-wrap");
 
         div.innerHTML = `
             <div>
                 <span class="badge badge-primary mr-2">${tab.tipo}</span>
                 <span class="font-weight-bold">${tab.nome_amigavel}</span>
                     ${tab.caminho ? `<small class="text-muted ml-2">(via <code>${tab.caminho.slice(0, -2)}</code>)</small>` : ''}
-                </div>${btnsHtml}`;
-        container.appendChild(div);
+                </div>
+        `;
+
+        if(indice > 0){    
+            // botão de remover tabela
+            let btnRmvTab = document.createElement('button');
+            btnRmvTab.classList.add("btn", "btn-sm", "text-danger", "btn-remover-tabela");
+            btnRmvTab.type = "button";
+            btnRmvTab.ariaLabel = "Remover tabela";
+            btnRmvTab.dataset.tabCaminho = tab.caminho;
+            btnRmvTab.innerHTML = `
+                <i class="bi bi-x-square-fill" aria-hidden="true"></i>
+            `;
+            div.appendChild(btnRmvTab);
+        }
+
+        containerTabela.appendChild(div);
+        containerTabela.innerHTML += btnsHtml;
+        container.appendChild(containerTabela);
+    });
+    
+    Array.from(document.querySelectorAll(".btn-remover-tabela")).forEach(btn => {
+        btn.addEventListener('click', evento => {
+            const caminhoTabelaRemovida = evento.currentTarget.dataset.tabCaminho;
+            atualizarEstadoGlobalRemocaoTabela(caminhoTabelaRemovida);
+            renderizarTudo();
+        });
+    });
+}
+
+function atualizarEstadoGlobalRemocaoTabela(caminhoTabelaRemovida) {
+    estadoGlobal.tabelas = estadoGlobal.tabelas.filter(t => {
+        return !t.caminho.startsWith(caminhoTabelaRemovida);
+    });
+
+    estadoGlobal.colunas = estadoGlobal.colunas.filter(c => {
+        return !c.campo.startsWith(caminhoTabelaRemovida);
+    });
+
+    estadoGlobal.filtros = estadoGlobal.filtros.filter(f => {
+        return !f.campo.startsWith(caminhoTabelaRemovida);
+    });
+
+    estadoGlobal.ordenacoes = estadoGlobal.ordenacoes.filter(o => {
+        return !o.campo.startsWith(caminhoTabelaRemovida);
     });
 }
 
@@ -398,7 +456,7 @@ export function renderizarColunas() {
                     <i class="bi ${iconClass}"></i>
                 </div>
                 <div class="d-flex flex-column mr-3">
-                    <span class="font-weight-bold small">${col.rotulo_exibicao}</span>
+                    <span class="font-weight-bold small">${col.rotulo}</span>
                     <span class="text-muted" style="font-size:0.7rem;">${col.tabela_origem}</span>
                 </div>
                 <button class="btn btn-link text-danger p-0 btn-remover-col" data-idx="${idx}">
@@ -445,8 +503,6 @@ export function renderizarOrdenacoes(){
     const msg = document.getElementById('msg-sem-ordenacao');
     tbody.innerHTML = '';
     
-    console.log(`estadoGlobal.ordenacoes.length === 0: ${estadoGlobal.ordenacoes.length === 0}`);
-    console.log("estadoGlobal.ordenacoes:", estadoGlobal.ordenacoes);
     if (estadoGlobal.ordenacoes.length === 0) {
         containerTabela.classList.add('d-none');
         msg.classList.remove('d-none');
@@ -480,13 +536,8 @@ export function gerarCargaUtil()
 {
     return {
         fonte_principal: estadoGlobal.modeloRaiz,
-        colunas: estadoGlobal.colunas.map(c => {
-            return { 
-                campo: c.caminho_final, 
-                rotulo: c.rotulo_exibicao, 
-                agregacao: c.agregacao 
-            };
-        }),
+        tabelas: estadoGlobal.tabelas,
+        colunas: estadoGlobal.colunas,
         filtros: estadoGlobal.filtros,
         ordenacoes: estadoGlobal.ordenacoes,
         limite: estadoGlobal.limite

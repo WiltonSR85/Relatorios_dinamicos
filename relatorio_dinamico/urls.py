@@ -11,5 +11,6 @@ urlpatterns = [
     path('listar/', views.listar, name="listar_relatorio"),
     path('editar/<int:id>', views.editar, name="editar_relatorio"),
     path('excluir/<int:id>', views.excluir, name="excluir_relatorio"),
-    path('testar', views.testar),
+    path('testar_html', views.testar_html, name="testar_html"),
+    path('testar_pdf', views.testar_pdf, name="testar_pdf"),
 ]

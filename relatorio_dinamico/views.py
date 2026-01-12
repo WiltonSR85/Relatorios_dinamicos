@@ -40,7 +40,7 @@ def gerar_sql(request):
         sql = str(queryset.query)
         return JsonResponse({'sql': sql})
 
-    except (FieldError, ValidationError) as e:
+    except (FieldError, ValidationError, ValueError) as e:
         return JsonResponse({'error': 'Erro na construção da consulta', 'detail': str(e)}, status=400)
 
 @require_POST
@@ -56,8 +56,8 @@ def gerar_pdf(request):
     except (FieldError, ValidationError) as e:
         return JsonResponse({'error': 'Erro na construção da consulta', 'detail': str(e)}, status=400)
 
-    """ with open('templates/teste.html', 'w', encoding='utf-8') as arquivo:
-        arquivo.write(html_final) """
+    with open('templates/teste.html', 'w', encoding='utf-8') as arquivo:
+        arquivo.write(html_final)
 
     try:
         pdf = HTML(string=html_final, base_url=request.build_absolute_uri('/')).write_pdf()
@@ -82,7 +82,7 @@ def salvar_relatorio(request):
         )
 
     tags = {"div", "h1", "h2", "img", "table", "thead", "tbody", "tr", "th", "td", "header", "main", "footer"}
-    atributos = {"class", "id", "style", "data-x", "data-y", "data-tipo", "src"}
+    atributos = {"class", "id", "style", "data-config-consulta", "data-x", "data-y", "data-tipo", "src"}
     tags_e_atributos = {}
 
     for tag in tags:
@@ -110,7 +110,10 @@ def excluir(request, id):
     relatorio.delete()
     return redirect("listar_relatorio")
 
-def testar(request):
+def testar_html(request):
+    return render(request, 'teste.html')
+
+def testar_pdf(request):
     from django.template.loader import render_to_string
     html = render_to_string('teste.html')
     pdf = HTML(string=html, base_url=request.build_absolute_uri('/')).write_pdf()
