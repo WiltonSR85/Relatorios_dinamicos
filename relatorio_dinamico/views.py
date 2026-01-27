@@ -52,7 +52,8 @@ def gerar_pdf(request):
 
     html = dados_recebidos.get('html')
     try:
-        html_final = ConstrutorHTML.gerar_html(esquema_bd, html, "_pdf_dinamico.html")
+        construtor_html = ConstrutorHTML(esquema_bd, html, "_pdf_dinamico.html")
+        html_final = construtor_html.gerar_html()
     except (FieldError, ValidationError) as e:
         return JsonResponse({'error': 'Erro na construção da consulta', 'detail': str(e)}, status=400)
 

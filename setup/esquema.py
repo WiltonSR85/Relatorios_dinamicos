@@ -3,7 +3,7 @@ Esquema do banco de dados para construção dinâmica de consultas e relatórios
 
 Cada modelo possui campos e conexões com outros modelos.
 Os campos incluem "rótulo" (nome que aparece para o usuário), "valor" (nome do campo no modelo) e "tipo" de dado (que não necessariamente é um tipo de dado do Python); o tipo de dado é utilizado para definir filtros e exibições apropriadas.
-As conexões representam as associações entre entre modelos, permitindo navegação e junção de dados relacionados. O "nome_amigavel" é usado na interface para representar a conexão, "campo_relacao" é o campo no modelo atual que referencia o modelo de destino, e "model_destino" é o modelo relacionado. O nome do "model_destino" deve corresponder a uma chave neste dicionário.
+As conexões representam as associações entre modelos, permitindo navegação e junção de dados relacionados. O "nome_amigavel" é usado na interface para representar a conexão, "campo_relacao" é o campo no modelo atual que referencia o modelo de destino, e "model_destino" é o modelo relacionado. O nome do "model_destino" deve corresponder a uma chave neste dicionário.
 """
 
 esquema_bd = {
