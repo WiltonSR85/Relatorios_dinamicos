@@ -9,11 +9,11 @@ from django.template.loader import render_to_string
 
 # mapa de funções de agregação permitidas 
 MAPA_AGREGACAO = {
-    'Count': Count,
-    'Sum': Sum, 
-    'Avg': Avg, 
-    'Min': Min, 
-    'Max': Max
+    'count': Count,
+    'sum': Sum, 
+    'avg': Avg, 
+    'min': Min, 
+    'max': Max
 }
 
 LIMITE_MAXIMO = 1000
@@ -97,11 +97,29 @@ class ConstrutorConsulta:
         return "__".join(partes_caminho_orm), config_campo['tipo']
 
 
-    def _construir_filtros(self):
+    def _construir_filtros(self, considerar_agregacoes=False):
         """Constrói a lista de objetos Q() para usar no .filter() do Django"""
         lista_q = []
-        
-        for filtro in self.configuracao_consulta.get('filtros', []):
+        filtros = self.configuracao_consulta.get('filtros', [])
+
+        if considerar_agregacoes:
+            # mantém apenas os filtros dos campos agregados
+            lista_filtros = []
+
+            for f in filtros:
+                func_agregacao = f.get('agregacao')
+
+                if func_agregacao and func_agregacao in MAPA_AGREGACAO:
+                    campo_filtro = f['campo'] # por ex., "solicitante__id__count"
+                    campo_filtro = campo_filtro.replace(f"__{func_agregacao}", "") # remove o sufixo da agregação; por ex, "solicitante__id__count" -> "solicitante__id"
+                    f['campo'] = campo_filtro
+                    lista_filtros.append(f)
+            
+            filtros = lista_filtros
+        else:
+            filtros = [f for f in filtros if not f['agregacao']]
+
+        for filtro in filtros:
             # 1. resolve o caminho (validação de segurança)
             caminho_orm, tipo_campo = self._resolver_caminho(filtro['campo'])
             sufixo_operador = filtro['operador']
@@ -112,7 +130,11 @@ class ConstrutorConsulta:
                 valor = valor.lower() == 'true'
             
             # 3. monta o lookup do Django (ex: base__cidade__icontains)
-            consulta_orm = f"{caminho_orm}__{sufixo_operador}"
+            if considerar_agregacoes:
+                caminho_orm = f"{caminho_orm}__{f['agregacao']}".replace("__", "_")
+                consulta_orm = f"{caminho_orm}__{sufixo_operador}"
+            else:
+                consulta_orm = f"{caminho_orm}__{sufixo_operador}"
             lista_q.append(Q(**{consulta_orm: valor}))
             
         return lista_q
@@ -157,10 +179,11 @@ class ConstrutorConsulta:
                 
                 # alias único para o Django não se perder
                 # Ex: solicitante__id torna-se solicitante_id_count
-                apelido = f"{caminho_orm.replace('__', '_')}_{func_agregacao.lower()}"
+                chave_apelido = f"{caminho_orm}__{func_agregacao}"
+                apelido = chave_apelido.replace('__', '_')
                 # cria a métrica (ex: Count('id'))
                 metricas[apelido] = MAPA_AGREGACAO[func_agregacao](caminho_orm, distinct=True)
-                self._mapa_apelidos_metricas[coluna['campo']] = apelido
+                self._mapa_apelidos_metricas[chave_apelido] = apelido
                 self._mapa_saida.append({
                     'chave_db': apelido, 
                     'rotulo': rotulo, 
@@ -182,11 +205,11 @@ class ConstrutorConsulta:
         """
         queryset = self.modelo_classe.objects.all()
         # aplica os filtros
-        filtros = self._construir_filtros()
+        filtros_sem_agregacao = self._construir_filtros()
 
-        if filtros:
+        if filtros_sem_agregacao:
             # combina todos os filtros com AND
-            queryset = queryset.filter(reduce(operator.and_, filtros))
+            queryset = queryset.filter(reduce(operator.and_, filtros_sem_agregacao))
             
         # prepara as colunas
         self._mapa_apelidos_metricas = {}  # para mapear campos de ordenação
@@ -204,7 +227,13 @@ class ConstrutorConsulta:
         if metricas:
             # calcula as funções de agregação para cada grupo
             queryset = queryset.annotate(**metricas)
-            
+        
+        # aplica filtros relacionados aos campos com agregação (HAVING)
+        filtros_com_agregacao = self._construir_filtros(True)
+
+        if filtros_com_agregacao:
+            queryset = queryset.filter(reduce(operator.and_, filtros_com_agregacao))
+
         # limpa o SELECT final para trazer apenas o solicitado
         chaves_selecao_final = dimensoes + list(metricas.keys())
         if chaves_selecao_final:

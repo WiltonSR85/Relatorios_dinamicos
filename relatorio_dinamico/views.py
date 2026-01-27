@@ -41,7 +41,8 @@ def gerar_sql(request):
         return JsonResponse({'sql': sql})
 
     except (FieldError, ValidationError, ValueError) as e:
-        return JsonResponse({'error': 'Erro na construção da consulta', 'detail': str(e)}, status=400)
+        #return JsonResponse({'error': 'Erro na construção da consulta', 'detail': str(e)}, status=400)
+        raise e
 
 @require_POST
 def gerar_pdf(request):

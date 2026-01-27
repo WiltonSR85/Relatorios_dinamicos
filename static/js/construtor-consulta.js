@@ -169,18 +169,18 @@ export function adicionarJuncao(tabelaPaiId, conexaoIdx) {
 }
 
 export function adicionarColuna() {
-    const tableIdx = document.getElementById('select-col-tabela').value;
-    const fieldVal = document.getElementById('select-col-campo').value;
+    const indiceTabela = document.getElementById('select-col-tabela').value;
+    const nomeCampo = document.getElementById('select-col-campo').value;
     const agg = document.getElementById('select-col-agregacao').value;
     const rotuloPersonalizado = document.getElementById('input-col-rotulo').value;
 
-    if (tableIdx === "" || fieldVal === "") 
+    if (indiceTabela === "" || nomeCampo === "") 
         return;
 
-    const tab = estadoGlobal.tabelas[tableIdx];
+    const tab = estadoGlobal.tabelas[indiceTabela];
     const campos = ESQUEMA_DB[tab.model].campos;
-    const campoObj = campos.find(c => c.valor === fieldVal);
-    const caminho = tab.caminho + fieldVal;
+    const campoObj = campos.find(c => c.valor === nomeCampo);
+    const caminho = tab.caminho + nomeCampo;
     let rotuloExibicao;
 
     if(agg){
@@ -218,24 +218,29 @@ export function removerColuna(index) {
 }
 
 export function adicionarFiltro() {
-    const tableIdx = document.getElementById('select-filtro-tabela').value;
-    const fieldVal = document.getElementById('select-filtro-campo').value;
+    const indiceTabela = document.getElementById('select-filtro-tabela').value;
+    const campoEntradanomeCampo = document.getElementById('select-filtro-campo');
     const operador = document.getElementById('select-filtro-operador').value;
-    const valor = document.getElementById('input-filtro-valor').value;
-
-    if (tableIdx === "" || fieldVal === "") 
+    const campoEntradaValorFiltro = document.getElementById('input-filtro-valor');
+    const valorFiltro = campoEntradaValorFiltro.value;
+    const nomeCampo = campoEntradanomeCampo.value;
+    
+    if (indiceTabela === "" || nomeCampo === "") 
         return;
-
-    const tab = estadoGlobal.tabelas[tableIdx];
+    
+    const agregacao = campoEntradanomeCampo.selectedOptions[0].dataset.agregacao;
+    
+    const tab = estadoGlobal.tabelas[indiceTabela];
     estadoGlobal.filtros.push({
-        campo: tab.caminho + fieldVal,
+        campo: tab.caminho + nomeCampo,
         operador: operador,
-        valor: valor
+        valor: valorFiltro,
+        agregacao: agregacao
     });
 
     renderizarFiltros();
     renderizarJson();
-    document.getElementById('input-filtro-valor').value = "";
+    campoEntradaValorFiltro.value = "";
 }
 
 export function removerFiltro(index) {
@@ -245,16 +250,16 @@ export function removerFiltro(index) {
 }
 
 export function adicionarOrdenacao() {
-    const tableIdx = document.getElementById('select-ordenacao-tabela').value;
-    const fieldVal = document.getElementById('select-ordenacao-campo').value;
+    const indiceTabela = document.getElementById('select-ordenacao-tabela').value;
+    const nomeCampo = document.getElementById('select-ordenacao-campo').value;
     const ordem = document.getElementById('select-ordenacao-ordem').value;
 
-    if (tableIdx === "" || fieldVal === "") 
+    if (indiceTabela === "" || nomeCampo === "") 
         return;
 
-    const tab = estadoGlobal.tabelas[tableIdx];
+    const tab = estadoGlobal.tabelas[indiceTabela];
     estadoGlobal.ordenacoes.push({
-        campo: tab.caminho + fieldVal,
+        campo: tab.caminho + nomeCampo,
         ordem: ordem
     });
 
@@ -301,9 +306,39 @@ export function atualizarSelectCampos(tabelaIdx, idSelectAlvo, idBtn) {
         opt.value = campo.valor;
         opt.text = campo.rotulo;
         opt.dataset.tipo = campo.tipo;
+        opt.dataset.agregacao = null;
         selectAlvo.appendChild(opt);
     });
     selectAlvo.disabled = false;
+
+    if(idSelectAlvo == "select-col-tabela")
+        return;
+
+    /* a partir daqui, são adicionadas às opções do select os campos que utilizam agregação */
+
+    let tab_caminho = tab.caminho.replace(/__$/, ""); // remove o '__' final
+
+    const colunasAgregacao = estadoGlobal.colunas.filter(c => {
+        if(!c.agregacao)
+            return false;
+
+        let partes = c.campo.split("__"); // separa a string em partes
+        partes.splice(-1, 1); // remove a última parte, que é o nome do campo
+        let campo = partes.join("__"); // junta as partes restantes de volta em uma string
+
+        return campo == tab_caminho; // verifica se o campo pertence à tabela selecionada
+    });
+
+    colunasAgregacao.forEach(c => {
+        const opt = document.createElement('option');
+        let campo = c.campo.split("__").at(-1); // pega apenas o nome do campo
+        campo = campo + "__" + c.agregacao; // adiciona a agregação ao nome do campo, por ex., "id__count"
+        opt.value = campo;
+        opt.text = c.rotulo;
+        opt.dataset.tipo = "number";
+        opt.dataset.agregacao = c.agregacao;
+        selectAlvo.appendChild(opt);
+    });
 }
 
 export function renderizarTudo() {
