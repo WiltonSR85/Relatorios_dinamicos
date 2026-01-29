@@ -35,13 +35,13 @@ cd Relatorios_dinamicos
 docker compose up --build
 ```
 
-A aplicação estará disponível em: **http://localhost:8000**
+A aplicação estará disponível em: **http://localhost:8001**
 
 ---
 
 ## Como usar o editor
 
-1. Abra a aplicação em **http://localhost:8000**
+1. Abra a aplicação em **http://localhost:8001**
 2. Use os botões para adicionar texto/tabela na área A4
 3. Arraste os elementos para posicionar
 4. Clique em "Visualizar relatório"

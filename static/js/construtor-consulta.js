@@ -22,15 +22,13 @@ export async function iniciarAplicacao() {
         }
 
         ESQUEMA_DB = await resposta.json();
-
-        const selectRaiz = document.getElementById('select-raiz');
-        selectRaiz.innerHTML = '<option value="" selected disabled>Selecione...</option>';
-
+        const sel = document.getElementById('select-raiz');
+        sel.innerHTML = '<option value="" selected disabled>Selecione...</option>';
         Object.keys(ESQUEMA_DB).forEach(key => {
             const opcao = document.createElement('option');
             opcao.value = key;
             opcao.text = key;
-            selectRaiz.appendChild(opcao);
+            sel.appendChild(opcao);
         });
 
     } catch (erro) {
@@ -45,12 +43,6 @@ export function abrirConstrutorConsulta() {
         return;
 
     const sel = document.getElementById('select-raiz');
-    sel.innerHTML = '<option value="" disabled selected>Selecione...</option>';
-    Object.keys(ESQUEMA_DB).forEach(k => 
-        sel.innerHTML += `
-        <option value="${k}">${k}</option>`
-    );
-
     const cfg = JSON.parse(elementoSelecionado.dataset.configConsulta || "{}");
     
     if (cfg.fonte_principal) {
@@ -169,18 +161,20 @@ export function adicionarJuncao(tabelaPaiId, conexaoIdx) {
 }
 
 export function adicionarColuna() {
-    const tableIdx = document.getElementById('select-col-tabela').value;
-    const fieldVal = document.getElementById('select-col-campo').value;
+    const indiceTabela = document.getElementById('select-col-tabela').value;
+    const campoEntradaNomeCampo = document.getElementById('select-col-campo');
     const agg = document.getElementById('select-col-agregacao').value;
     const rotuloPersonalizado = document.getElementById('input-col-rotulo').value;
-
-    if (tableIdx === "" || fieldVal === "") 
+    let nomeCampo = campoEntradaNomeCampo.value;
+    const trunc = document.getElementById('select-col-truncamento').value;
+    
+    if (indiceTabela === "" || nomeCampo === "") 
         return;
 
-    const tab = estadoGlobal.tabelas[tableIdx];
+    const tab = estadoGlobal.tabelas[indiceTabela];
     const campos = ESQUEMA_DB[tab.model].campos;
-    const campoObj = campos.find(c => c.valor === fieldVal);
-    const caminho = tab.caminho + fieldVal;
+    const campoObj = campos.find(c => c.valor === nomeCampo);
+    const caminho = tab.caminho + nomeCampo;
     let rotuloExibicao;
 
     if(agg){
@@ -199,43 +193,96 @@ export function adicionarColuna() {
         tabela_origem: tab.nome_amigavel,
         campo: caminho,
         rotulo: rotuloExibicao,
-        agregacao: agg || null
+        agregacao: agg || null,
+        truncamento: trunc || null
     });
 
-    renderizarColunas();
-    renderizarJson();
+    /* se houver agregação ou truncamento, o método renderizarTudo() é chamado 
+    para garantir que os novos campos sejam adicionados às opções dos campos 
+    de seleção de filtros e ordenações */
 
-    document.getElementById('select-col-campo').value = "";
+    if(agg || trunc){
+        renderizarTudo();
+    } else {
+        renderizarColunas();
+        renderizarJson();
+    }
+
+    campoEntradaNomeCampo.value = "";
     document.getElementById('select-col-agregacao').value = "";
     document.getElementById('input-col-rotulo').value = "";
+    document.getElementById('select-col-truncamento').value = "";
     document.getElementById('btn-add-coluna').disabled = true;
 }
 
 export function removerColuna(index) {
-    estadoGlobal.colunas.splice(index, 1);
-    renderizarColunas();
-    renderizarJson();
+    const colunasRemovidas = estadoGlobal.colunas.splice(index, 1);
+    
+    // se a coluna tiver agregacao ou truncamento, 
+    // serão removidos os possíveis filtros e ordenações relacionados a ela
+    
+    let colunaRemovida;
+
+    if(colunasRemovidas.length > 0){
+        colunaRemovida = colunasRemovidas[0];
+    } else {
+        return;
+    }
+
+    const sufixo = colunaRemovida.agregacao || colunaRemovida.truncamento;
+    
+    if(!sufixo){
+        renderizarColunas();
+        renderizarJson();
+        return;
+    }
+
+    const nomeCampo = `${colunaRemovida.campo}__${sufixo}`
+
+    estadoGlobal.filtros = estadoGlobal.filtros.filter(filtro => {
+        if ((filtro.agregacao || filtro.truncamento)) {
+            return !(filtro.campo == nomeCampo);
+        } else {
+            return true;
+        }
+    });
+    estadoGlobal.ordenacoes = estadoGlobal.ordenacoes.filter(ordenacao => {
+        return !(ordenacao.campo == nomeCampo);
+    });
+    renderizarTudo();
 }
 
 export function adicionarFiltro() {
-    const tableIdx = document.getElementById('select-filtro-tabela').value;
-    const fieldVal = document.getElementById('select-filtro-campo').value;
+    const indiceTabela = document.getElementById('select-filtro-tabela').value;
+    const campoEntradaNomeCampo = document.getElementById('select-filtro-campo');
     const operador = document.getElementById('select-filtro-operador').value;
-    const valor = document.getElementById('input-filtro-valor').value;
-
-    if (tableIdx === "" || fieldVal === "") 
+    const campoEntradaValorFiltro = document.getElementById('input-filtro-valor');
+    const valorFiltro = campoEntradaValorFiltro.value;
+    let nomeCampo = campoEntradaNomeCampo.value;
+    
+    if (indiceTabela === "" || nomeCampo === "") 
         return;
+    
+    const agregacao = campoEntradaNomeCampo.selectedOptions[0].dataset.agregacao;
+    const truncamento = campoEntradaNomeCampo.selectedOptions[0].dataset.truncamento;
+    
+    const sufixo = agregacao || truncamento;
+    if(sufixo){
+        nomeCampo = nomeCampo.replace(`__${sufixo}`, "");
+    }
 
-    const tab = estadoGlobal.tabelas[tableIdx];
+    const tab = estadoGlobal.tabelas[indiceTabela];
     estadoGlobal.filtros.push({
-        campo: tab.caminho + fieldVal,
+        campo: tab.caminho + nomeCampo,
         operador: operador,
-        valor: valor
+        valor: valorFiltro,
+        agregacao: agregacao || null,
+        truncamento: truncamento || null
     });
 
     renderizarFiltros();
     renderizarJson();
-    document.getElementById('input-filtro-valor').value = "";
+    campoEntradaValorFiltro.value = "";
 }
 
 export function removerFiltro(index) {
@@ -245,21 +292,33 @@ export function removerFiltro(index) {
 }
 
 export function adicionarOrdenacao() {
-    const tableIdx = document.getElementById('select-ordenacao-tabela').value;
-    const fieldVal = document.getElementById('select-ordenacao-campo').value;
+    const indiceTabela = document.getElementById('select-ordenacao-tabela').value;
+    const campoEntradaNomeCampo = document.getElementById('select-ordenacao-campo');
     const ordem = document.getElementById('select-ordenacao-ordem').value;
+    let nomeCampo = campoEntradaNomeCampo.value;
 
-    if (tableIdx === "" || fieldVal === "") 
+    if (indiceTabela === "" || nomeCampo === "") 
         return;
 
-    const tab = estadoGlobal.tabelas[tableIdx];
+    const agregacao = campoEntradaNomeCampo.selectedOptions[0].dataset.agregacao;
+    const truncamento = campoEntradaNomeCampo.selectedOptions[0].dataset.truncamento;
+
+    const sufixo = agregacao || truncamento;
+    if(sufixo){
+        nomeCampo = nomeCampo.replace(`__${sufixo}`, "");
+    }
+
+    const tab = estadoGlobal.tabelas[indiceTabela];
     estadoGlobal.ordenacoes.push({
-        campo: tab.caminho + fieldVal,
-        ordem: ordem
+        campo: tab.caminho + nomeCampo,
+        ordem: ordem,
+        agregacao: agregacao || null,
+        truncamento: truncamento || null
     });
 
     renderizarOrdenacoes();
     renderizarJson();
+    campoEntradaNomeCampo.value = "";
 }
 
 export function removerOrdenacao(index) {
@@ -301,9 +360,63 @@ export function atualizarSelectCampos(tabelaIdx, idSelectAlvo, idBtn) {
         opt.value = campo.valor;
         opt.text = campo.rotulo;
         opt.dataset.tipo = campo.tipo;
+        opt.dataset.agregacao = "";
         selectAlvo.appendChild(opt);
     });
     selectAlvo.disabled = false;
+
+    if(idSelectAlvo == "select-col-campo")
+        return;
+
+    /* a partir daqui, são adicionadas ao campo de seleção as opções relacionadas a agregação ou truncamento*/
+
+    let tab_caminho = tab.caminho.replace(/__$/, ""); // remove o '__' final
+
+    const colunasAgregacao = estadoGlobal.colunas.filter(c => {
+        if(!(c.agregacao))
+            return false;
+
+        let campo = extrairCaminhoTabelaDoCampo(c.campo);
+        return campo == tab_caminho; // verifica se o campo pertence à tabela selecionada
+    });
+
+    colunasAgregacao.forEach(c => {
+        criarElementoOpcao(selectAlvo, c.campo, c.rotulo, "number", "agregacao", c.agregacao);
+    });
+
+    // não permite adicionar filtros usando campos com truncamento de data (por enquanto)
+    if(idSelectAlvo == "select-filtro-campo")
+        return;
+
+    function extrairCaminhoTabelaDoCampo(campoCompleto) {
+        let partes = campoCompleto.split("__"); // separa a string em partes
+        partes.pop(); // remove a última parte
+        return partes.join("__"); // retorna as partes restantes de volta numa string
+    }
+
+    const colunasTruncamento = estadoGlobal.colunas.filter(c => {
+        if(!(c.truncamento))
+            return false;
+        
+        let campo = extrairCaminhoTabelaDoCampo(c.campo);
+        return campo == tab_caminho;
+    });
+
+    colunasTruncamento.forEach(c => {
+        criarElementoOpcao(selectAlvo, c.campo, c.rotulo, "date", "truncamento", c.truncamento);
+    });
+
+    function criarElementoOpcao(container, campo, rotulo, tipo, nomePropriedade, valorPropriedade){
+        const opt = document.createElement('option');
+        let nomeCampo = campo.split("__").at(-1); // pega apenas o nome do campo
+        let sufixo = valorPropriedade;
+        nomeCampo = nomeCampo + "__" + sufixo; // adiciona o nome da função ao nome do campo, por ex., "id__count"
+        opt.value = nomeCampo;
+        opt.text = rotulo;
+        opt.dataset.tipo = tipo;
+        opt.dataset[nomePropriedade] = valorPropriedade || "";
+        container.appendChild(opt);
+    }
 }
 
 export function renderizarTudo() {
@@ -459,8 +572,8 @@ export function renderizarColunas() {
                     <span class="font-weight-bold small">${col.rotulo}</span>
                     <span class="text-muted" style="font-size:0.7rem;">${col.tabela_origem}</span>
                 </div>
-                <button class="btn btn-link text-danger p-0 btn-remover-col" data-idx="${idx}">
-                    <i class="bi bi-x-circle-fill"></i>
+                <button class="btn btn-link text-danger p-0 btn-remover-col" data-idx="${idx}" aria-label="Apagar">
+                    <i class="bi bi-x-circle-fill" aria-hidden="true"></i>
                 </button>`;
             container.appendChild(div);
         });
@@ -481,15 +594,17 @@ export function renderizarFiltros() {
         msg.classList.add('d-none');
         estadoGlobal.filtros.forEach((filtro, idx) => {
             const tr = document.createElement('tr');
+            let sufixo = filtro.agregacao || filtro.truncamento;
+            sufixo = sufixo ? `__${sufixo}` : "";
             tr.innerHTML = `
                 <td class="text-primary">
-                    <code>${filtro.campo}</code>
+                    <code>${filtro.campo}${sufixo}</code>
                 </td>
                 <td>${filtro.operador}</td>
                 <td>${filtro.valor}</td>
                 <td class="text-right">
-                    <button class="btn btn-link text-danger p-0 btn-remover-filtro" data-idx="${idx}">
-                        <i class="bi bi-trash"></i>
+                    <button class="btn btn-link text-danger p-0 btn-remover-filtro" data-idx="${idx}" aria-label="Apagar">
+                        <i class="bi bi-trash" aria-hidden="true"></i>
                     </button>
                 </td>`;
             tbody.appendChild(tr);
@@ -511,14 +626,16 @@ export function renderizarOrdenacoes(){
         msg.classList.add('d-none');
         estadoGlobal.ordenacoes.forEach((ordenacao, idx) => {
             const tr = document.createElement('tr');
+            let sufixo = ordenacao.agregacao || ordenacao.truncamento;
+            sufixo = sufixo ? `__${sufixo}` : "";
             tr.innerHTML = `
                 <td class="text-primary">
-                    <code>${ordenacao.campo}</code>
+                    <code>${ordenacao.campo}${sufixo}</code>
                 </td>
                 <td>${ordenacao.ordem == 'ASC' ? 'Crescente': 'Decrescente'}</td>
                 <td class="text-right">
-                    <button class="btn btn-link text-danger p-0 btn-remover-ordenacao" data-idx="${idx}">
-                        <i class="bi bi-trash"></i>
+                    <button type="button" class="btn btn-link text-danger p-0 btn-remover-ordenacao" data-idx="${idx}" aria-label="Apagar">
+                        <i class="bi bi-trash" aria-hidden="true"></i>
                     </button>
                 </td>`;
             tbody.appendChild(tr);

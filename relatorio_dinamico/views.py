@@ -2,7 +2,7 @@ import json
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_POST
 from django.shortcuts import render
-from .construtores import ConstrutorHTML, ConstrutorConsulta
+from .construtores import ConstrutorHTML, ConstrutorConsulta, ValidadorConsulta
 from .models import Relatorio
 from django.utils.encoding import force_str
 from setup.esquema import esquema_bd
@@ -35,13 +35,16 @@ def gerar_sql(request):
         return JsonResponse({'error': 'JSON inválido', 'detail': str(e)}, status=400)
     
     try:
-        construtor_consulta = ConstrutorConsulta(esquema_bd, configuracao_consulta)
+        validador_consulta = ValidadorConsulta(esquema_bd, configuracao_consulta)
+        config_consulta_valida = validador_consulta.validar()
+        construtor_consulta = ConstrutorConsulta(config_consulta_valida)
         queryset = construtor_consulta.criar_queryset()
         sql = str(queryset.query)
         return JsonResponse({'sql': sql})
 
     except (FieldError, ValidationError, ValueError) as e:
-        return JsonResponse({'error': 'Erro na construção da consulta', 'detail': str(e)}, status=400)
+        #return JsonResponse({'error': 'Erro na construção da consulta', 'detail': str(e)}, status=400)
+        raise e
 
 @require_POST
 def gerar_pdf(request):
@@ -52,7 +55,8 @@ def gerar_pdf(request):
 
     html = dados_recebidos.get('html')
     try:
-        html_final = ConstrutorHTML.gerar_html(esquema_bd, html, "_pdf_dinamico.html")
+        construtor_html = ConstrutorHTML(esquema_bd, html, "_pdf_dinamico.html")
+        html_final = construtor_html.gerar_html()
     except (FieldError, ValidationError) as e:
         return JsonResponse({'error': 'Erro na construção da consulta', 'detail': str(e)}, status=400)
 
@@ -111,7 +115,14 @@ def excluir(request, id):
     return redirect("listar_relatorio")
 
 def testar_html(request):
-    return render(request, 'teste.html')
+    from django.template.exceptions import TemplateDoesNotExist
+    from django.http import HttpResponse
+    
+    try:
+        return render(request, 'teste.html')
+    except TemplateDoesNotExist as e:
+        return HttpResponse("<h1 style='text-align:center;'>Você ainda não gerou nenhum relatório</h1>")
+
 
 def testar_pdf(request):
     from django.template.loader import render_to_string
