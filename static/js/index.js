@@ -66,8 +66,22 @@ document.getElementById('select-col-tabela').addEventListener('change', (e) => {
     CC.atualizarSelectCampos(e.target.value, 'select-col-campo', 'btn-add-coluna');
 });
 
-document.getElementById('select-col-campo').addEventListener('change', (e) => {
+const selectColCampo = document.getElementById('select-col-campo');
+selectColCampo.addEventListener('change', (e) => {
     document.getElementById('btn-add-coluna').disabled = !e.target.value;
+    
+    const selecaoAgregacao = document.getElementById("container-col-agregacao");
+    const selecaoTruncamento = document.getElementById("container-col-truncamento");
+    const tipo = selectColCampo.selectedOptions[0].dataset.tipo;
+
+    // se o nome do tipo começar com "date", exibe as funções de truncar data no lugar das funções de agregação
+    if(tipo.startsWith("date")){
+        selecaoAgregacao.classList.add("d-none");
+        selecaoTruncamento.classList.remove("d-none");
+    } else {
+        selecaoAgregacao.classList.remove("d-none");
+        selecaoTruncamento.classList.add("d-none");
+    }
 });
 
 document.getElementById('btn-add-coluna').addEventListener('click', () => {
@@ -325,7 +339,7 @@ async function obterSQL(){
             msgErro = data.error;
             detalheErro = data.detail || '';
         }
-        containerSQL.innerHTML = `<p class="px-3 py-4 mb-0 text-center text-danger">Houve um erro ao obter SQL. ${msgErro}: ${detalheErro}</p>`;
+        containerSQL.innerHTML = `<p class="px-3 py-4 mb-0 text-center text-danger">Houve um erro ao obter o código SQL. ${msgErro}: ${detalheErro}</p>`;
         return;
     }
 
