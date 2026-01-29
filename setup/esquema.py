@@ -34,11 +34,6 @@ esquema_bd = {
         "campo_relacao": "atendimento_chamado",
         "model_destino": "AtendimentoPessoa"
       },
-      #{
-        #"nome_amigavel": "TramiteChamado",
-        #"campo_relacao": "tramite_chamado",
-        #"model_destino": "TramiteChamado"
-      #},
       {
         "nome_amigavel": "UnidadeChamado",
         "campo_relacao": "unidade_chamado",
@@ -57,9 +52,9 @@ esquema_bd = {
     ],
     "conexoes": [
       {
-        "nome_amigavel": "Usuário",
-        "campo_relacao": "usuario",
-        "model_destino": "User"
+        "nome_amigavel": "AtendimentoPessoa",
+        "campo_relacao": "pessoa_atendimento",
+        "model_destino": "AtendimentoPessoa"
       },
       {
         "nome_amigavel": "Base",
@@ -67,9 +62,14 @@ esquema_bd = {
         "model_destino": "Base"
       },
       {
-        "nome_amigavel": "AtendimentoPessoa",
-        "campo_relacao": "pessoa_atendimento",
-        "model_destino": "AtendimentoPessoa"
+        "nome_amigavel": "Chamado",
+        "campo_relacao": "chamado_set",
+        "model_destino": "Chamado"
+      },
+      {
+        "nome_amigavel": "Usuário",
+        "campo_relacao": "usuario",
+        "model_destino": "Usuário"
       }
     ]
   },
@@ -90,14 +90,14 @@ esquema_bd = {
     ],
     "conexoes": [
       {
-        "nome_amigavel": "Pessoa",
-        "campo_relacao": "pessoa",
-        "model_destino": "Pessoa"
-      },
-      {
         "nome_amigavel": "Chamado",
         "campo_relacao": "chamado",
         "model_destino": "Chamado"
+      },
+      {
+        "nome_amigavel": "Pessoa",
+        "campo_relacao": "pessoa",
+        "model_destino": "Pessoa"
       }
     ]
   },
@@ -119,7 +119,7 @@ esquema_bd = {
       {
         "nome_amigavel": "Responsável",
         "campo_relacao": "responsavel",
-        "model_destino": "User"
+        "model_destino": "Usuário"
       },
       {
         "nome_amigavel": "Setor",
@@ -149,7 +149,7 @@ esquema_bd = {
       {
         "nome_amigavel": "Membro",
         "campo_relacao": "membro",
-        "model_destino": "User"
+        "model_destino": "Usuário"
       }
     ]
   },
@@ -185,24 +185,35 @@ esquema_bd = {
     ],
     "conexoes": [
       {
-        "nome_amigavel": "Unidade",
-        "campo_relacao": "unidade",
-        "model_destino": "Unidade"
-      },
-      {
         "nome_amigavel": "Chamado",
         "campo_relacao": "chamado",
         "model_destino": "Chamado"
+      },
+      {
+        "nome_amigavel": "Unidade",
+        "campo_relacao": "unidade",
+        "model_destino": "Unidade"
       }
     ]
   },
-  "User": {
+  "Usuário": {
     "app_model": "django.contrib.auth.models.User",
     "campos": [
       { "rotulo": "Username", "valor": "username", "tipo": "string" },
       { "rotulo": "E-mail", "valor": "email", "tipo": "email" },
       { "rotulo": "Está ativo?", "valor": "is_active", "tipo": "bool" },
     ],
-    "conexoes": []
+    "conexoes": [
+        {
+            "nome_amigavel": "Base",
+            "campo_relacao": "resposavel_base",
+            "model_destino": "Base"
+        },
+        {
+            "nome_amigavel": "Pessoa",
+            "campo_relacao": "pessoa",
+            "model_destino": "Pessoa"
+        }
+    ]
   }
 }

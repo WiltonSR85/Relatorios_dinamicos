@@ -210,8 +210,8 @@
                                                             <option value="" disabled selected>Selecione...</option>
                                                         </select>
                                                     </div>
-                                                    <div class="col-md-2">
-                                                        <label class="small font-weight-bold text-muted" for="select-col-agregacao">Função (agregação)</label>
+                                                    <div class="col-md-2" id="container-col-agregacao">
+                                                        <label class="small font-weight-bold text-muted" for="select-col-agregacao">Função de agregação</label>
                                                         <select class="custom-select" id="select-col-agregacao">
                                                             <option value="">Nenhuma</option>
                                                             <option value="count">Contagem</option>
@@ -221,6 +221,17 @@
                                                             <option value="max">Máximo</option>
                                                         </select>
                                                     </div>
+
+                                                    <div class="col-md-2 d-none" id="container-col-truncamento">
+                                                        <label class="small font-weight-bold text-muted" for="select-col-truncamento">Função de truncamento</label>
+                                                        <select class="custom-select" id="select-col-truncamento">
+                                                            <option value="">Nenhuma</option>
+                                                            <option value="truncday">Dia</option>
+                                                            <option value="truncmonth">Mês</option>
+                                                            <option value="truncyear">Ano</option>
+                                                        </select>
+                                                    </div>
+
                                                     <div class="col-md-2">
                                                         <label class="small font-weight-bold text-muted" for="input-col-rotulo">Nome para o cabeçalho da coluna</label>
                                                         <input type="text" class="form-control" id="input-col-rotulo">
