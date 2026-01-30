@@ -1,6 +1,8 @@
 from django.test import TestCase
+from django.core.exceptions import ValidationError
 from .construtores import ValidadorConsulta, ConstrutorConsulta
 from setup.esquema import esquema_bd
+from copy import deepcopy
 
 consulta1 = {
     "fonte_principal": "Base",
@@ -45,38 +47,31 @@ class ValidadorConsultaTestCase(TestCase):
         consulta_valida = validador.validar()
         self.assertIn('app_model', consulta_valida)
         self.assertEqual(consulta_valida['app_model'], 'base.Base')
-        # veriicar se os tipos foram adicionados
+        
         for coluna in consulta_valida['colunas']:
             self.assertIn('tipo', coluna)
+            self.assertIn('apelido', coluna)
 
-        
-    """ def test_validar_consulta_invalida(self):
-        consulta_invalida = self.consulta.copy()
-        consulta_invalida['fonte_principal'] = 'FonteInexistente'
-        validador = ValidadorConsulta(esquema_bd, consulta_invalida)
-        with self.assertRaises(Exception):
-            validador.validar()
-        
     def test_validar_coluna_invalida(self):
-        consulta_invalida = self.consulta.copy()
-        consulta_invalida['colunas'][0]['campo'] = 'campo_inexistente'
+        consulta_invalida = deepcopy(self.consulta)
+        consulta_invalida['colunas'][0]['campo'] = 'responsavel__pessoa__usuario__password'
         validador = ValidadorConsulta(esquema_bd, consulta_invalida)
-        with self.assertRaises(Exception):
-            validador.validar()
+        with self.assertRaises(ValidationError):
+            validador._resolver_caminho('responsavel__pessoa__usuario__password')
 
+    def test_validar_limite_invalido(self):
+        consulta_invalida = deepcopy(self.consulta)
+        consulta_invalida['limite'] = 2000
+        validador = ValidadorConsulta(esquema_bd, consulta_invalida)
+        consulta_valida = validador.validar()
+        self.assertEqual(consulta_valida['limite'], 1000)
+    
     def test_validar_agregacao_invalida(self):
-        consulta_invalida = self.consulta.copy()
-        consulta_invalida['colunas'][2]['agregacao'] = 'soma_invalida'
+        consulta_invalida = deepcopy(self.consulta)
+        consulta_invalida['colunas'][2]['agregacao'] = 'multiply'
         validador = ValidadorConsulta(esquema_bd, consulta_invalida)
-        with self.assertRaises(Exception):
+        with self.assertRaises(ValidationError):
             validador.validar()
-
-    def test_validar_ordenacao_invalida(self):
-        consulta_invalida = self.consulta.copy()
-        consulta_invalida['ordenacoes'][0]['campo'] = 'campo_inexistente'
-        validador = ValidadorConsulta(esquema_bd, consulta_invalida)
-        with self.assertRaises(Exception):
-            validador.validar() """
 
 class ConstrutorConsultaTestCase(TestCase):
     def setUp(self):

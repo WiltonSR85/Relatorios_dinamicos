@@ -108,6 +108,26 @@ class ValidadorConsulta:
         return caminho_final, config_campo['tipo']
 
     
+    def _criar_apelido_campo(self, campo, nome_funcao=None):
+        """Cria um apelido único para o campo, considerando agregações e truncamentos"""
+        apelido = campo.replace('__', '_')
+
+        if nome_funcao:
+            if nome_funcao not in FUNCOES_DE_AGREGACAO and nome_funcao not in FUNCOES_DE_TRUNCAMENTO_DATA:
+                raise ValidationError(f"Função inválida no campo '{campo}': {nome_funcao}")
+            
+            apelido = f"{apelido}_{nome_funcao}"
+        
+        return apelido
+
+
+    def _validar_limite(self, limite):
+        if limite and isinstance(limite, int) and limite > 0 and limite <= LIMITE_MAXIMO:
+            return limite
+        else:
+            return LIMITE_MAXIMO
+
+
     def validar(self):
         """Valida todos os campos usados na consulta"""
         colunas = self.configuracao_consulta.get('colunas', [])
@@ -117,13 +137,17 @@ class ValidadorConsulta:
 
         filtros = self.configuracao_consulta.get('filtros', [])
         ordenacoes = self.configuracao_consulta.get('ordenacoes', [])
-
         lista_elementos = colunas + filtros + ordenacoes
 
         for elemento in lista_elementos:
             campo = elemento['campo']
             _, tipo = self._resolver_caminho(campo)
             elemento['tipo'] = tipo
+            nome_funcao = elemento.get('agregacao') or elemento.get('truncamento')
+            elemento['apelido'] = self._criar_apelido_campo(campo, nome_funcao)
+
+        limite = self.configuracao_consulta.get('limite')
+        self.configuracao_consulta['limite'] = self._validar_limite(limite)
 
         return self.configuracao_consulta
 
@@ -141,6 +165,45 @@ class ConstrutorConsulta:
         except LookupError:
             raise ValidationError(f"Modelo do Django não encontrado: {self.configuracao_consulta['app_model']}")
 
+        self._mapa_saida = [] # para formatar o resultado final e manter a ordem
+
+
+    def _processar_agregacao(self, caminho_orm, nome_funcao, rotulo, apelido, metricas):
+        """Processa uma coluna com função de agregação"""
+        func_agregacao = FUNCOES_DE_AGREGACAO[nome_funcao]
+        metricas[apelido] = func_agregacao(caminho_orm, distinct=True)
+        
+        self._mapa_saida.append({
+            'chave_db': apelido,
+            'rotulo': rotulo,
+            'tipo': 'number'
+        })
+
+
+    def _processar_truncamento(self, caminho_orm, nome_funcao, rotulo, apelido, tipo_campo, campos_truncados):
+        """Processa uma coluna com truncamento de data"""
+        if tipo_campo not in ['date', 'datetime']:
+            raise ValidationError(
+                f"Truncamento de data só pode ser aplicado a campos 'date' ou 'datetime'. "
+                f"Campo é do tipo '{tipo_campo}'."
+            )
+        
+        func_truncamento = FUNCOES_DE_TRUNCAMENTO_DATA[nome_funcao]
+        campos_truncados[apelido] = func_truncamento(caminho_orm) 
+        
+        if nome_funcao.endswith("month"):
+            tipo_exibicao = 'month'
+        elif nome_funcao.endswith("year"):
+            tipo_exibicao = 'year'
+        else:
+            tipo_exibicao = 'date'
+
+        self._mapa_saida.append({
+            'chave_db': apelido,
+            'rotulo': rotulo,
+            'tipo': tipo_exibicao
+        })
+
 
     def _processar_colunas(self):
         """Processa as colunas da configuração"""
@@ -155,11 +218,12 @@ class ConstrutorConsulta:
             rotulo = coluna.get('rotulo', coluna['campo'])
             nome_func_agregacao = coluna.get('agregacao')
             nome_func_truncamento = coluna.get('truncamento')
+            apelido = coluna.get('apelido')
             
             if nome_func_agregacao:
-                self._processar_agregacao(caminho_orm, nome_func_agregacao, rotulo, metricas)
+                self._processar_agregacao(caminho_orm, nome_func_agregacao, rotulo, apelido, metricas)
             elif nome_func_truncamento:
-                self._processar_truncamento(caminho_orm, tipo_campo, nome_func_truncamento, rotulo, campos_truncados)
+                self._processar_truncamento(caminho_orm, nome_func_truncamento, rotulo, apelido, tipo_campo, campos_truncados)
             else:
                 campos.append(caminho_orm)
                 self._mapa_saida.append({
@@ -169,53 +233,6 @@ class ConstrutorConsulta:
                 })
         
         return campos_truncados, campos, metricas
-
-    def _processar_agregacao(self, caminho_orm, nome_funcao, rotulo, metricas):
-        """Processa uma coluna com função de agregação"""
-        if nome_funcao not in FUNCOES_DE_AGREGACAO:
-            raise ValidationError(f"Função de agregação inválida: {nome_funcao}")
-        
-        chave_agregacao = f"{caminho_orm}__{nome_funcao}"
-        apelido_agregacao = chave_agregacao.replace('__', '_')
-        func_agregacao = FUNCOES_DE_AGREGACAO[nome_funcao]
-        metricas[apelido_agregacao] = func_agregacao(caminho_orm, distinct=True)
-        self._mapa_apelidos[chave_agregacao] = apelido_agregacao
-        self._mapa_saida.append({
-            'chave_db': apelido_agregacao,
-            'rotulo': rotulo,
-            'tipo': 'number'
-        })
-
-
-    def _processar_truncamento(self, caminho_orm, tipo_campo, nome_funcao, rotulo, campos_truncados):
-        """Processa uma coluna com truncamento de data"""
-        if nome_funcao not in FUNCOES_DE_TRUNCAMENTO_DATA:
-            return
-        
-        if tipo_campo not in ['date', 'datetime']:
-            raise ValidationError(
-                f"Truncamento de data só pode ser aplicado a campos 'date' ou 'datetime'. "
-                f"Campo é do tipo '{tipo_campo}'."
-            )
-        
-        chave_truncamento = f"{caminho_orm}__{nome_funcao}"
-        apelido_truncamento = chave_truncamento.replace('__', '_')
-        func_truncamento = FUNCOES_DE_TRUNCAMENTO_DATA[nome_funcao]
-        campos_truncados[apelido_truncamento] = func_truncamento(caminho_orm) 
-        self._mapa_apelidos[chave_truncamento] = apelido_truncamento
-        
-        if nome_funcao.endswith("month"):
-            tipo_exibicao = 'month'
-        elif nome_funcao.endswith("year"):
-            tipo_exibicao = 'year'
-        else:
-            tipo_exibicao = 'date'
-
-        self._mapa_saida.append({
-            'chave_db': apelido_truncamento,
-            'rotulo': rotulo,
-            'tipo': tipo_exibicao
-        })
 
 
     def _construir_filtros(self):
@@ -236,36 +253,33 @@ class ConstrutorConsulta:
             func_agregacao = filtro.get('agregacao')
             
             if func_agregacao:
-                if func_agregacao in FUNCOES_DE_AGREGACAO:
-                    campo = f"{campo}__{func_agregacao}".replace("__", "_") # resulta numa string assim: base_setor_membro_username_count
-                    consulta_orm = f"{campo}__{sufixo_operador}" # resulta numa string assim: base_setor_membro_username_count__lte
-                else:
-                    # o nome da função não é válido
-                    continue
+                apelido = filtro['apelido']
+                consulta_orm = f"{apelido}__{sufixo_operador}"
             else:
                 consulta_orm = f"{campo}__{sufixo_operador}"
 
             lista_q.append(Q(**{consulta_orm: valor}))
-
-        return lista_q
+        
+        return lista_q 
 
 
     def _construir_ordenacao(self):
         """Constrói a lista de campos para o order_by() do Django"""
         ordenacao_final = []
         ordenacoes = self.configuracao_consulta.get('ordenacoes', [])
-        for ord_item in ordenacoes:
-            campo_input = ord_item['campo']
-            direcao = ord_item.get('ordem', 'asc').lower()
+        for ordenacao in ordenacoes:
+            campo = ordenacao['campo']
+            direcao = ordenacao.get('ordem', 'asc').lower()
+            nome_funcao = ordenacao.get('agregacao') or ordenacao.get('truncamento')
             
-            # se o campo for uma métrica, usa o alias gerado
-            if campo_input in self._mapa_apelidos:
-                campo_ordenar = self._mapa_apelidos[campo_input]
+            # se o campo for uma métrica, usa o apelido gerado
+            if nome_funcao:
+                campo_ordenacao = ordenacao.get('apelido')
             else:
-                campo_ordenar = campo_input
+                campo_ordenacao = campo 
 
             prefixo = "-" if direcao == "desc" else ""
-            ordenacao_final.append(f"{prefixo}{campo_ordenar}")
+            ordenacao_final.append(f"{prefixo}{campo_ordenacao}")
         
         return ordenacao_final
 
@@ -277,8 +291,6 @@ class ConstrutorConsulta:
         """
         queryset = self.modelo_classe.objects.all()
         # prepara as colunas
-        self._mapa_apelidos = {}  # para mapear nomes de campos relacionados a agrupamentos e truncamentos
-        self._mapa_saida = []  # para formatar o resultado final e manter a ordem
         campos_truncados, campos, metricas = self._processar_colunas()
         
         # constrói o QuerySet na ordem correta
@@ -288,6 +300,7 @@ class ConstrutorConsulta:
             queryset = queryset.annotate(**campos_truncados)
         
         campos_agrupamento = campos + list(campos_truncados.keys())
+
         if campos_agrupamento:
             # define os campos para o GROUP BY (agrupamento)
             queryset = queryset.values(*campos_agrupamento)
@@ -319,11 +332,7 @@ class ConstrutorConsulta:
 
         # limite 
         limite = self.configuracao_consulta.get('limite')
-
-        if limite and isinstance(limite, int) and limite > 0 and limite <= LIMITE_MAXIMO:
-            queryset = queryset[:limite]
-        else:
-            queryset = queryset[:LIMITE_MAXIMO]
+        queryset = queryset[:limite]
 
         return queryset
 
@@ -342,7 +351,7 @@ class ConstrutorConsulta:
                 
                 # formatações visuais
                 if item_mapa['tipo'] == 'bool':
-                    valor = "Sim" if valor else "Não"
+                    valor = "Verdadeiro" if valor else "Falso"
                 elif item_mapa['tipo'] == 'date' and valor:
                     valor = valor.strftime("%d/%m/%Y") if hasattr(valor, 'strftime') else valor
                 elif item_mapa['tipo'] == 'datetime' and valor:
