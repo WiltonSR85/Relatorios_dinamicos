@@ -35,8 +35,8 @@ def gerar_sql(request):
         return JsonResponse({'error': 'JSON inválido', 'detail': str(e)}, status=400)
     
     try:
-        validador_consulta = ValidadorConsulta(esquema_bd, configuracao_consulta)
-        config_consulta_valida = validador_consulta.validar()
+        validador_consulta = ValidadorConsulta(esquema_bd)
+        config_consulta_valida = validador_consulta.validar(configuracao_consulta)
         construtor_consulta = ConstrutorConsulta(config_consulta_valida)
         queryset = construtor_consulta.criar_queryset()
         sql = str(queryset.query)

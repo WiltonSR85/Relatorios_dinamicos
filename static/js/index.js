@@ -271,7 +271,15 @@ async function gerarRelatorioFinal() {
 }
 
 function getHTML(){
-    return `${document.getElementById('canvas-pagina').innerHTML}`;
+    const elementoSelecionado = paginaCanvas.querySelector('.selecionado');
+    
+    if(elementoSelecionado){
+        elementoSelecionado.classList.remove('selecionado');
+    }
+
+    const html = document.getElementById('canvas-pagina').innerHTML;
+    
+    return html;
 }
 
 function salvarModeloRelatorio() {
