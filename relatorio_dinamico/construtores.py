@@ -26,24 +26,12 @@ FUNCOES_DE_TRUNCAMENTO_DATA = {
 LIMITE_MAXIMO = 1000
 
 class ValidadorConsulta:
-    def __init__(self, esquema, configuracao_consulta):
+    def __init__(self, esquema):
         """
         :param esquema: Dicionário representando o esquema do BD
-        :param configuracao_consulta: Dicionário especificando os metadados da consulta
         """
         self.esquema = esquema
-        
-        if not isinstance(configuracao_consulta, dict):
-            raise ValidationError("Configuração de consulta inválida.")
-        
-        self.configuracao_consulta = configuracao_consulta
-        self.nome_entidade_raiz = configuracao_consulta.get('fonte_principal')
-        
-        if self.nome_entidade_raiz not in self.esquema:
-            raise ValidationError(f"Entidade raiz '{self.nome_entidade_raiz}' inválida.")
-        
-        self.configuracao_consulta['app_model'] = self.esquema[self.nome_entidade_raiz]['app_model']
-        self.campos_validados = {}  # para evitar validação repetida de campos
+        self._campos_validados = {} # para evitar validação repetida de campos
 
     
     def _buscar_na_lista(self, lista, chave_identificadora, valor_buscado):
@@ -57,22 +45,20 @@ class ValidadorConsulta:
         return None
 
 
-    def _resolver_caminho(self, caminho_str):
+    def _validar_caminho(self, nome_entidade_raiz, caminho_str):
         """
-        Traduz o caminho da configuração (ex: "solicitante__usuario__email") 
-        para o caminho do Django ORM, validando cada passo no esquema.
+        Verifica se o caminho do campo (ex: "solicitante__usuario__email") 
+        é válido dentro do esquema fornecido.
         
-        Retorna: (caminho_orm, tipo_dado)
+        Retorna o tipo do campo (ex: "string", "number", "date", etc).
         """
-
-        if caminho_str in self.campos_validados:
-            return caminho_str, self.campos_validados[caminho_str]
+        if caminho_str in self._campos_validados:
+            return self._campos_validados[caminho_str]
 
         partes = caminho_str.split('__')
-        entidade_atual = self.nome_entidade_raiz
-        partes_caminho_orm = []
+        entidade_atual = nome_entidade_raiz
         
-        # navega pelas relações (todas as partes exceto a última)
+        # navega pelas relações (todas as partes exceto a última, que é o nome da coluna no BD)
         for i in range(len(partes) - 1):
             campo_relacao = partes[i]
             config_entidade = self.esquema.get(entidade_atual)
@@ -85,11 +71,9 @@ class ValidadorConsulta:
                     f"Relação '{campo_relacao}' não existe ou não é permitida em '{entidade_atual}'."
                 )
             
-            # adiciona o caminho real (ex: 'solicitante_id' ou 'atendimentos_set')
-            partes_caminho_orm.append(conexao['campo_relacao'])
+            # avança para a próxima entidade no caminho
             entidade_atual = conexao['model_destino']
             
-        # resolve o campo final
         nome_campo = partes[-1]
         config_entidade_final = self.esquema.get(entidade_atual)
         lista_campos = config_entidade_final.get('campos', [])
@@ -99,47 +83,128 @@ class ValidadorConsulta:
             raise ValidationError(
                 f"Campo '{nome_campo}' não encontrado na entidade '{entidade_atual}'."
             )
-            
-        partes_caminho_orm.append(config_campo['valor'])
         
-        # retorna o caminho unido (ex: solicitante__usuario__email), o tipo (ex: string)
-        caminho_final = "__".join(partes_caminho_orm)
-        self.campos_validados[caminho_final] = config_campo['tipo']
-        return caminho_final, config_campo['tipo']
+        tipo_campo = config_campo['tipo']
+        self._campos_validados[caminho_str] = tipo_campo
+        
+        return tipo_campo
+
+
+    def _validar_funcao(self, nome_funcao, campo, tipo_campo):
+        """Valida se a função de agregação ou truncamento é válida para o campo"""
+        if nome_funcao:
+            if nome_funcao not in FUNCOES_DE_AGREGACAO and nome_funcao not in FUNCOES_DE_TRUNCAMENTO_DATA:
+                raise ValidationError(f"Função inválida no campo '{campo}': {nome_funcao}")
+
+            if nome_funcao in FUNCOES_DE_TRUNCAMENTO_DATA and tipo_campo not in ['date', 'datetime']:
+                raise ValidationError(
+                        f"Truncamento de data só pode ser aplicado a campos 'date' ou 'datetime'. "
+                        f"Campo é do tipo '{tipo_campo}'."
+                    )
+        
+        return nome_funcao
 
     
-    def validar(self):
+    def _criar_apelido_campo(self, campo, nome_funcao=None):
+        """Cria um apelido único para o campo, considerando agregações e truncamentos"""
+        apelido = campo.replace('__', '_')
+
+        if nome_funcao:
+            apelido = f"{apelido}_{nome_funcao}"
+        
+        return apelido
+
+
+    def _validar_limite(self, limite):
+        if limite and isinstance(limite, int) and limite > 0 and limite <= LIMITE_MAXIMO:
+            return limite
+        else:
+            return LIMITE_MAXIMO
+
+
+    def validar(self, configuracao_consulta):
         """Valida todos os campos usados na consulta"""
-        colunas = self.configuracao_consulta.get('colunas', [])
+        if not isinstance(configuracao_consulta, dict):
+            raise ValidationError("Configuração de consulta inválida.")
+        
+        nome_entidade_raiz = configuracao_consulta.get('fonte_principal')
+        
+        if nome_entidade_raiz not in self.esquema:
+            raise ValidationError(f"Entidade raiz '{nome_entidade_raiz}' inválida.")
+        
+        # armazena o nome do app_model no dicionário da consulta
+        configuracao_consulta['app_model'] = self.esquema[nome_entidade_raiz]['app_model']
+        
+        if self._campos_validados:
+            self._campos_validados.clear()
+
+        colunas = configuracao_consulta.get('colunas', [])
 
         if len(colunas) == 0:
             raise ValidationError("Nenhuma coluna foi especificada para a consulta.")
 
-        filtros = self.configuracao_consulta.get('filtros', [])
-        ordenacoes = self.configuracao_consulta.get('ordenacoes', [])
-
+        filtros = configuracao_consulta.get('filtros', [])
+        ordenacoes = configuracao_consulta.get('ordenacoes', [])
         lista_elementos = colunas + filtros + ordenacoes
 
         for elemento in lista_elementos:
             campo = elemento['campo']
-            _, tipo = self._resolver_caminho(campo)
-            elemento['tipo'] = tipo
+            tipo = self._validar_caminho(nome_entidade_raiz, campo)
+            elemento['tipo'] = tipo # armazena o tipo do campo validado
+            nome_funcao = elemento.get('agregacao') or elemento.get('truncamento')
+            nome_funcao = self._validar_funcao(nome_funcao, campo, tipo)
+            elemento['apelido'] = self._criar_apelido_campo(campo, nome_funcao) # armazena o apelido do campo
 
-        return self.configuracao_consulta
+        limite = configuracao_consulta.get('limite')
+        configuracao_consulta['limite'] = self._validar_limite(limite)
+
+        return configuracao_consulta
 
 class ConstrutorConsulta:
     def __init__(self, configuracao_consulta):
         """
-        :param configuracao_consulta: JSON especificando os metadados da consulta
+        :param configuracao_consulta: Dicionário especificando os metadados da consulta
         """
         self.configuracao_consulta = configuracao_consulta
-        self.nome_entidade_raiz = configuracao_consulta.get('fonte_principal')
         
         # carrega o modelo dinamicamente
         try:
             self.modelo_classe = apps.get_model(self.configuracao_consulta['app_model'])
         except LookupError:
             raise ValidationError(f"Modelo do Django não encontrado: {self.configuracao_consulta['app_model']}")
+
+        self._mapa_saida = [] # para formatar o resultado final e manter a ordem
+
+
+    def _processar_agregacao(self, caminho_orm, nome_funcao, rotulo, apelido, metricas):
+        """Processa uma coluna com função de agregação"""
+        func_agregacao = FUNCOES_DE_AGREGACAO[nome_funcao]
+        metricas[apelido] = func_agregacao(caminho_orm, distinct=True)
+        
+        self._mapa_saida.append({
+            'chave_db': apelido,
+            'rotulo': rotulo,
+            'tipo': 'number'
+        })
+
+
+    def _processar_truncamento(self, caminho_orm, nome_funcao, rotulo, apelido, campos_truncados):
+        """Processa uma coluna com truncamento de data"""
+        func_truncamento = FUNCOES_DE_TRUNCAMENTO_DATA[nome_funcao]
+        campos_truncados[apelido] = func_truncamento(caminho_orm) 
+        
+        if nome_funcao.endswith("month"):
+            tipo_exibicao = 'month'
+        elif nome_funcao.endswith("year"):
+            tipo_exibicao = 'year'
+        else:
+            tipo_exibicao = 'date'
+
+        self._mapa_saida.append({
+            'chave_db': apelido,
+            'rotulo': rotulo,
+            'tipo': tipo_exibicao
+        })
 
 
     def _processar_colunas(self):
@@ -155,11 +220,12 @@ class ConstrutorConsulta:
             rotulo = coluna.get('rotulo', coluna['campo'])
             nome_func_agregacao = coluna.get('agregacao')
             nome_func_truncamento = coluna.get('truncamento')
+            apelido = coluna.get('apelido')
             
             if nome_func_agregacao:
-                self._processar_agregacao(caminho_orm, nome_func_agregacao, rotulo, metricas)
+                self._processar_agregacao(caminho_orm, nome_func_agregacao, rotulo, apelido, metricas)
             elif nome_func_truncamento:
-                self._processar_truncamento(caminho_orm, tipo_campo, nome_func_truncamento, rotulo, campos_truncados)
+                self._processar_truncamento(caminho_orm, nome_func_truncamento, rotulo, apelido, campos_truncados)
             else:
                 campos.append(caminho_orm)
                 self._mapa_saida.append({
@@ -169,53 +235,6 @@ class ConstrutorConsulta:
                 })
         
         return campos_truncados, campos, metricas
-
-    def _processar_agregacao(self, caminho_orm, nome_funcao, rotulo, metricas):
-        """Processa uma coluna com função de agregação"""
-        if nome_funcao not in FUNCOES_DE_AGREGACAO:
-            raise ValidationError(f"Função de agregação inválida: {nome_funcao}")
-        
-        chave_agregacao = f"{caminho_orm}__{nome_funcao}"
-        apelido_agregacao = chave_agregacao.replace('__', '_')
-        func_agregacao = FUNCOES_DE_AGREGACAO[nome_funcao]
-        metricas[apelido_agregacao] = func_agregacao(caminho_orm, distinct=True)
-        self._mapa_apelidos[chave_agregacao] = apelido_agregacao
-        self._mapa_saida.append({
-            'chave_db': apelido_agregacao,
-            'rotulo': rotulo,
-            'tipo': 'number'
-        })
-
-
-    def _processar_truncamento(self, caminho_orm, tipo_campo, nome_funcao, rotulo, campos_truncados):
-        """Processa uma coluna com truncamento de data"""
-        if nome_funcao not in FUNCOES_DE_TRUNCAMENTO_DATA:
-            return
-        
-        if tipo_campo not in ['date', 'datetime']:
-            raise ValidationError(
-                f"Truncamento de data só pode ser aplicado a campos 'date' ou 'datetime'. "
-                f"Campo é do tipo '{tipo_campo}'."
-            )
-        
-        chave_truncamento = f"{caminho_orm}__{nome_funcao}"
-        apelido_truncamento = chave_truncamento.replace('__', '_')
-        func_truncamento = FUNCOES_DE_TRUNCAMENTO_DATA[nome_funcao]
-        campos_truncados[apelido_truncamento] = func_truncamento(caminho_orm) 
-        self._mapa_apelidos[chave_truncamento] = apelido_truncamento
-        
-        if nome_funcao.endswith("month"):
-            tipo_exibicao = 'month'
-        elif nome_funcao.endswith("year"):
-            tipo_exibicao = 'year'
-        else:
-            tipo_exibicao = 'date'
-
-        self._mapa_saida.append({
-            'chave_db': apelido_truncamento,
-            'rotulo': rotulo,
-            'tipo': tipo_exibicao
-        })
 
 
     def _construir_filtros(self):
@@ -236,36 +255,33 @@ class ConstrutorConsulta:
             func_agregacao = filtro.get('agregacao')
             
             if func_agregacao:
-                if func_agregacao in FUNCOES_DE_AGREGACAO:
-                    campo = f"{campo}__{func_agregacao}".replace("__", "_") # resulta numa string assim: base_setor_membro_username_count
-                    consulta_orm = f"{campo}__{sufixo_operador}" # resulta numa string assim: base_setor_membro_username_count__lte
-                else:
-                    # o nome da função não é válido
-                    continue
+                apelido = filtro['apelido']
+                consulta_orm = f"{apelido}__{sufixo_operador}"
             else:
                 consulta_orm = f"{campo}__{sufixo_operador}"
 
             lista_q.append(Q(**{consulta_orm: valor}))
-
-        return lista_q
+        
+        return lista_q 
 
 
     def _construir_ordenacao(self):
         """Constrói a lista de campos para o order_by() do Django"""
         ordenacao_final = []
         ordenacoes = self.configuracao_consulta.get('ordenacoes', [])
-        for ord_item in ordenacoes:
-            campo_input = ord_item['campo']
-            direcao = ord_item.get('ordem', 'asc').lower()
+        for ordenacao in ordenacoes:
+            campo = ordenacao['campo']
+            direcao = ordenacao.get('ordem', 'asc').lower()
+            nome_funcao = ordenacao.get('agregacao') or ordenacao.get('truncamento')
             
-            # se o campo for uma métrica, usa o alias gerado
-            if campo_input in self._mapa_apelidos:
-                campo_ordenar = self._mapa_apelidos[campo_input]
+            # se o campo for uma métrica, usa o apelido gerado
+            if nome_funcao:
+                campo_ordenacao = ordenacao.get('apelido')
             else:
-                campo_ordenar = campo_input
+                campo_ordenacao = campo 
 
             prefixo = "-" if direcao == "desc" else ""
-            ordenacao_final.append(f"{prefixo}{campo_ordenar}")
+            ordenacao_final.append(f"{prefixo}{campo_ordenacao}")
         
         return ordenacao_final
 
@@ -277,8 +293,6 @@ class ConstrutorConsulta:
         """
         queryset = self.modelo_classe.objects.all()
         # prepara as colunas
-        self._mapa_apelidos = {}  # para mapear nomes de campos relacionados a agrupamentos e truncamentos
-        self._mapa_saida = []  # para formatar o resultado final e manter a ordem
         campos_truncados, campos, metricas = self._processar_colunas()
         
         # constrói o QuerySet na ordem correta
@@ -288,6 +302,7 @@ class ConstrutorConsulta:
             queryset = queryset.annotate(**campos_truncados)
         
         campos_agrupamento = campos + list(campos_truncados.keys())
+
         if campos_agrupamento:
             # define os campos para o GROUP BY (agrupamento)
             queryset = queryset.values(*campos_agrupamento)
@@ -319,11 +334,7 @@ class ConstrutorConsulta:
 
         # limite 
         limite = self.configuracao_consulta.get('limite')
-
-        if limite and isinstance(limite, int) and limite > 0 and limite <= LIMITE_MAXIMO:
-            queryset = queryset[:limite]
-        else:
-            queryset = queryset[:LIMITE_MAXIMO]
+        queryset = queryset[:limite]
 
         return queryset
 
@@ -342,7 +353,7 @@ class ConstrutorConsulta:
                 
                 # formatações visuais
                 if item_mapa['tipo'] == 'bool':
-                    valor = "Sim" if valor else "Não"
+                    valor = "Verdadeiro" if valor else "Falso"
                 elif item_mapa['tipo'] == 'date' and valor:
                     valor = valor.strftime("%d/%m/%Y") if hasattr(valor, 'strftime') else valor
                 elif item_mapa['tipo'] == 'datetime' and valor:
@@ -382,13 +393,13 @@ class ConstrutorHTML:
     def _inserir_dados_no_html(self):
         conteudo_html = BeautifulSoup(self._html_inicial, 'html.parser')
         tabelas = conteudo_html.find_all(attrs={'data-config-consulta': True})
+        validador_consulta = ValidadorConsulta(self._esquema_bd)
 
         for tab in tabelas:
             dados_consulta_str = tab['data-config-consulta']
             dados_consulta = json.loads(dados_consulta_str)
             # retorna lista de dicts: [{'Nome': 'João', 'Idade': 30}, ...]
-            validador_consulta = ValidadorConsulta(self._esquema_bd, dados_consulta)
-            config_consulta_valida = validador_consulta.validar()
+            config_consulta_valida = validador_consulta.validar(dados_consulta)
             construtor_consulta = ConstrutorConsulta(config_consulta_valida)
             dados = construtor_consulta.executar()
             

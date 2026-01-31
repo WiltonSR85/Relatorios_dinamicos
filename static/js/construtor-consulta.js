@@ -1,5 +1,19 @@
 import { getElementoSelecionado, atualizarPainelPropriedades, tornarComponentesDaTabelasRedimensionaveis } from './canvas.js';
 
+/** Várias das funções seguintes possuem comportamentos comuns.
+ * Algumas delas adicionam ou removem elementos do estadoGlobal e
+ * depois chamam funções de renderização específicas para atualizar
+ * as partes da interface do usuário relacionadas a esses elementos.
+ * Outras funções atualizam os elementos de seleção (select) com base
+ * nas tabelas atualmente presentes no estadoGlobal.
+ * Essas funções trabalham juntas para garantir que a interface do usuário
+ * esteja sempre sincronizada com o estado atual da consulta sendo construída.
+ * Assim, sempre que uma alteração é feita no estadoGlobal, como, por exemplo,
+ * adição ou remoção de tabelas, colunas, filtros ou ordenações, as funções 
+ * de renderização e atualização de seleção são chamadas para refletir 
+ * essas mudanças na interface do usuário.
+ */
+
 const URL_ESQUEMA_DB = '/esquema';
 
 let ESQUEMA_DB = {};
@@ -66,6 +80,8 @@ export function abrirConstrutorConsulta() {
 }
 
 export function salvarConfiguracaoTabela() {
+    /* Salva a configuração da consulta no elemento selecionado */
+    
     const elementoSelecionado = getElementoSelecionado();
 
     if (!elementoSelecionado) 
@@ -82,6 +98,8 @@ export function salvarConfiguracaoTabela() {
 }
 
 function inserirCabecalhosNaTabela(elementoSelecionado, cabeçalhos){
+    /* Insere os cabeçalhos na tabela selecionada */
+
     const linhaDoCabeçalho = elementoSelecionado.querySelector('thead tr');
     const linhaDoCorpo = elementoSelecionado.querySelector('tbody tr');
     linhaDoCabeçalho.innerHTML = '';   
@@ -107,6 +125,8 @@ function inserirCabecalhosNaTabela(elementoSelecionado, cabeçalhos){
 }
 
 export function redefinirConstrutorConsulta() {
+    /* Redefine o estado do construtor de consultas */
+
     estadoGlobal.modeloRaiz = "";
     estadoGlobal.tabelas = [];
     estadoGlobal.colunas = [];
@@ -121,6 +141,8 @@ export function redefinirConstrutorConsulta() {
 }
 
 export function iniciarRaiz(nomeModelo) {
+    /* Inicia a construção da consulta a partir do modelo raiz selecionado */
+
     estadoGlobal.modeloRaiz = nomeModelo;
     estadoGlobal.tabelas = [];
     estadoGlobal.colunas = [];
@@ -136,6 +158,8 @@ export function iniciarRaiz(nomeModelo) {
 }
 
 export function carregarTabela(modeloDestino, nomeAmigavel, caminhoPrefixo, campoRelacao, modeloAnterior, tipo) {
+    /* Adiciona uma tabela ao estado global */
+
     estadoGlobal.tabelas.push({
         id: Math.random().toString(36).substring(2, 9),
         model: modeloDestino,
@@ -333,6 +357,8 @@ export function adicionarLimite(valor) {
 }
 
 export function isTabelaJaAdicionada(modelo, modeloDestino) {
+    /* Verifica se uma tabela já foi adicionada */
+
     /** se houver uma tabela com os mesmos modelo anterior e modelo de destino, retorna true; 
      * por exemplo, se já existe uma tabela que tem "Base" como modelo_anterior e "Unidade" como modelo, 
      * então não deve ser possível adicionar outra tabela que também tenha "Base" como modelo_anterior e "Unidade" como modelo */
@@ -342,6 +368,8 @@ export function isTabelaJaAdicionada(modelo, modeloDestino) {
 }
 
 export function atualizarSelectCampos(tabelaIdx, idSelectAlvo, idBtn) {
+    /* Atualiza as opções seleção de campos (colunas, filtros ou ordenações) com base na tabela selecionada */
+
     const selectAlvo = document.getElementById(idSelectAlvo);
     const btn = document.getElementById(idBtn);
     selectAlvo.innerHTML = '<option value="" disabled selected>Selecione...</option>';
@@ -512,6 +540,8 @@ export function renderizarEstruturaTabelas() {
 }
 
 function atualizarEstadoGlobalRemocaoTabela(caminhoTabelaRemovida) {
+    /* Remove a tabela e todos os elementos relacionados a ela (colunas, filtros, ordenações) do estado global */
+
     estadoGlobal.tabelas = estadoGlobal.tabelas.filter(t => {
         return !t.caminho.startsWith(caminhoTabelaRemovida);
     });
@@ -530,6 +560,8 @@ function atualizarEstadoGlobalRemocaoTabela(caminhoTabelaRemovida) {
 }
 
 export function atualizarOpcoesSelect(idSelect) {
+    /* Atualiza as opções de um select com base na lista de tabelas do estado global */
+
     const select = document.getElementById(idSelect);
     select.innerHTML = '';
     estadoGlobal.tabelas.forEach((tab, index) => {
@@ -541,6 +573,7 @@ export function atualizarOpcoesSelect(idSelect) {
     
     if (estadoGlobal.tabelas.length > 0) {
         select.value = 0;
+        // dispara o evento change para mudar o campo desabilitado do select
         select.dispatchEvent(new Event('change'));
     }
 }
