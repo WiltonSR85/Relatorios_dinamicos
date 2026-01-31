@@ -1,4 +1,3 @@
-import { rgbParaHex } from './uteis.js';
 import { tornarElementoArrastavel, tornarElementoRedimencionavel } from './interact-config.js';
 import { fontes } from './uteis.js';
 
@@ -14,6 +13,8 @@ const props = {
     peso: document.getElementById('prop-peso-fonte'),
     borda: document.getElementById('prop-borda'),
     alinhamento: document.querySelectorAll('#prop-botoes-alinhamento > button'),
+    margemSuperior: document.getElementById('prop-margem-superior'),
+    margemInferior: document.getElementById('prop-margem-inferior'),
 };
 
 export function getElementoSelecionado() {
@@ -59,32 +60,46 @@ export function criarElementoRelatorio(tipo, x, y, container, dadosAdicionais = 
     el.dataset.tipo = tipo;
     el.style.left = `${x}px`; 
     el.style.top = `${y}px`;
+    el.style.marginTop = '16px';
+    el.style.marginBottom = '16px';
     el.dataset.x = 0; 
     el.dataset.y = 0;
 
-    const objetoInteract = interact(el);
-    tornarElementoArrastavel(objetoInteract);
-    if(tipo == 'tabela'){
-        tornarElementoRedimencionavel(objetoInteract, {
-            right: true, left: true, top: false, bottom: false
-        });
-    } else if (tipo !== 'imagem'){
-        tornarElementoRedimencionavel(objetoInteract);
-    }
-    
     container.appendChild(el);
+    tornarElementoInterativo(el);
     selecionarElemento(el);
 }
 
+export function tornarElementoInterativo(el){
+    const objetoInteract = interact(el);
+    const tipo = el.dataset.tipo;
+    
+    if(el.parentElement.id === "main"){
+        if (tipo !== 'imagem'){
+            tornarElementoRedimencionavel(objetoInteract, {
+                right: false, left: false, top: true, bottom: true
+            });
+        }
+    } else {
+        tornarElementoArrastavel(objetoInteract);
+    }
+
+    if(tipo === 'tabela'){
+        tornarElementoRedimencionavel(objetoInteract, {
+            right: true, left: true, top: false, bottom: false
+        });
+        tornarComponentesDaTabelasRedimensionaveis(el);
+    } else if (tipo !== 'imagem'){
+        tornarElementoRedimencionavel(objetoInteract);
+    }
+}
 function criarTexto(){
-    const el = document.createElement('div');
-    el.classList.add('el-texto'); 
-    el.innerHTML = '<div style="margin:auto;">Texto editável</div>';
-    el.style.fontSize = '14px'; el.style.color = '#000';
-    el.style.width = '200px';
+    const el = document.createElement('p');
+    el.innerText = 'Texto editável';
+    el.style.width = '600px';
     el.style.height = '50px';
-    el.style.display = "flex";
     el.style.padding = '0';
+    el.style.textAlign = 'center';
 
     return el;
 }
@@ -92,7 +107,7 @@ function criarTexto(){
 function criarH1(){
     const el = document.createElement('h1');
     el.innerText = 'Título 1';
-    el.style.width = '200px';
+    el.style.width = '600px';
     el.style.height = '50px';
     el.style.textAlign = 'center';
 
@@ -102,7 +117,7 @@ function criarH1(){
 function criarH2(){
     const el = document.createElement('h2');
     el.innerText = 'Título 2';
-    el.style.width = '200px';
+    el.style.width = '600px';
     el.style.height = '50px';
     el.style.textAlign = 'center';
 
@@ -180,16 +195,13 @@ export function atualizarPainelPropriedades() {
     document.getElementById('grupo-prop-tabela').classList.toggle('d-none', tipo !== 'tabela');
 
     if (tipo === 'texto' || tipo === 'h1' || tipo === 'h2') {
-        props.texto.value = elementoSelecionado.childNodes[0]?.nodeValue || elementoSelecionado.innerText;
+        props.texto.value = elementoSelecionado.innerText;
     }
-    props.tamanho.value = parseInt(window.getComputedStyle(elementoSelecionado).fontSize);
 
+    const estilo = window.getComputedStyle(elementoSelecionado);
+    props.tamanho.value = parseInt(estilo.fontSize);
     let alinhamento;
-    if(elementoSelecionado.dataset.tipo == 'texto'){
-        alinhamento = elementoSelecionado.children[0].style.textAlign;
-    } else {
-        alinhamento = elementoSelecionado.style.textAlign;
-    }
+    alinhamento = elementoSelecionado.style.textAlign;
 
     props.alinhamento.forEach(btn => {
         if(btn.dataset.align == alinhamento){
@@ -201,34 +213,30 @@ export function atualizarPainelPropriedades() {
     });
 
     // estilos comuns
-    const estilo = window.getComputedStyle(elementoSelecionado);
-    props.fundo.value = estilo.backgroundColor === 'rgba(0, 0, 0, 0)' ? '#ffffff' : rgbParaHex(estilo.backgroundColor);
+    props.fundo.value = estilo.backgroundColor === 'rgba(0, 0, 0, 0)' ? '#ffffff' : estilo.backgroundColor;
     props.fonte.value = elementoSelecionado.style.fontFamily ?  elementoSelecionado.style.fontFamily : fontes[0].valor;
-    props.cor.value = rgbParaHex(estilo.color);
+    props.cor.value = estilo.color;
+    props.borda.value = estilo.border;    
+    props.margemInferior.value = parseInt(estilo.marginBottom);
+    props.margemSuperior.value = parseInt(estilo.marginTop);
 }
 
 export function inicializarOuvintesPropriedades() {
     props.texto.addEventListener('input', (e) => { 
-        let tipo = elementoSelecionado?.dataset.tipo;
-        if (tipo === 'texto') { 
-            const divTexto = elementoSelecionado.children[0];
-            divTexto.innerText = e.target.value;
-            divTexto.style.width = elementoSelecionado.style.width;
-        } else if(tipo === 'h1' || tipo === 'h2'){
+        if (elementoSelecionado) 
             elementoSelecionado.innerText = e.target.value;
-        }
     });
     props.fundo.addEventListener('input', (e) => { 
         if (elementoSelecionado) 
-        elementoSelecionado.style.backgroundColor = e.target.value; 
+            elementoSelecionado.style.backgroundColor = e.target.value; 
     });
     props.fonte.addEventListener('change', (e) => { 
         if (elementoSelecionado) 
-        elementoSelecionado.style.fontFamily = e.target.value; 
+            elementoSelecionado.style.fontFamily = e.target.value; 
     });
     props.cor.addEventListener('input', (e) => { 
         if (elementoSelecionado)
-        elementoSelecionado.style.color = e.target.value; 
+            elementoSelecionado.style.color = e.target.value; 
     });
     props.tamanho.addEventListener('input', (e) => { 
         if (elementoSelecionado) 
@@ -240,7 +248,7 @@ export function inicializarOuvintesPropriedades() {
     });
     props.borda.addEventListener('change', (e) => { 
         if (elementoSelecionado){
-            const border = e.target.value;
+            const border = e.target.value || "";
             elementoSelecionado.style.border = border;
         } 
     });
@@ -252,15 +260,19 @@ export function inicializarOuvintesPropriedades() {
 
             const botao = e.target.closest('.btn-align');
             const alinhamento = botao.dataset.align;
-
-            if(elementoSelecionado.dataset.tipo == 'texto'){                
-                elementoSelecionado.children[0].style.textAlign = alinhamento;
-            } else {
-                elementoSelecionado.style.textAlign = alinhamento;
-            }
-
+            elementoSelecionado.style.textAlign = alinhamento;
             props.alinhamento.forEach(b => b.classList.remove('ativo'));
             botao.classList.add('ativo');
         });
+    });
+
+    props.margemSuperior.addEventListener('input', (e) => { 
+        if (elementoSelecionado) 
+            elementoSelecionado.style.marginTop = e.target.value + 'px'; 
+    });
+
+    props.margemInferior.addEventListener('input', (e) => { 
+        if (elementoSelecionado) 
+            elementoSelecionado.style.marginBottom = e.target.value + 'px'; 
     });
 }

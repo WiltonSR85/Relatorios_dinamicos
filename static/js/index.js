@@ -1,4 +1,4 @@
-import { criarElementoRelatorio, selecionarElemento, desselecionarTudo, deletarElementoSelecionado, inicializarOuvintesPropriedades, tornarComponentesDaTabelasRedimensionaveis } from './canvas.js';
+import { criarElementoRelatorio, selecionarElemento, desselecionarTudo, deletarElementoSelecionado, inicializarOuvintesPropriedades, tornarComponentesDaTabelasRedimensionaveis, tornarElementoInterativo } from './canvas.js';
 import { tornarElementoArrastavel, tornarElementoRedimencionavel, tornarElementoManipulavel } from './interact-config.js';
 import * as CC from './construtor-consulta.js';
 import { fontes, tiposDeDadosEntrada, formatarSQL } from './uteis.js';
@@ -360,18 +360,7 @@ async function obterSQL(){
 function prepararElementosExistentes(){
     const elementos = document.getElementsByClassName('elemento-relatorio');
     Array.from(elementos).forEach(el => {
-        const tipo = el.dataset.tipo;        
-        const objetoInteract = interact(el);
-        tornarElementoArrastavel(objetoInteract);
-
-        if(tipo == 'tabela'){
-            tornarElementoRedimencionavel(objetoInteract, {
-                right: true, left: true, top: false, bottom: false
-            });
-            tornarComponentesDaTabelasRedimensionaveis(objetoInteract.target);
-        } else if (tipo !== 'imagem'){
-            tornarElementoRedimencionavel(objetoInteract);
-        }
+        tornarElementoInterativo(el);
     });
 }
 

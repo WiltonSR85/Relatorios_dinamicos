@@ -130,7 +130,7 @@
                     </div>
                     <div class="form-row mb-2">
                         <div class="col-6">
-                            <label class="small" for="prop-tamanho-fonte">Tam. (px)</label>
+                            <label class="small" for="prop-tamanho-fonte">Tamanho (px)</label>
                             <input type="number" id="prop-tamanho-fonte" class="form-control form-control-sm">
                         </div>
                         <div class="col-6">
@@ -138,15 +138,28 @@
                             <select id="prop-peso-fonte" class="custom-select custom-select-sm">
                                 <option value="normal">Normal</option>
                                 <option value="bold">Negrito</option>
-                            </select></div>
+                            </select>
+                        </div>
                     </div>
-                    <div class="form-group mb-2">
-                        <label class="small" for="prop-borda">Borda</label>
-                        <select id="prop-borda" class="custom-select custom-select-sm">
-                            <option value="none">Nenhuma</option>
-                            <option value="1px solid #000">Sólida fina</option>
-                            <option value="1px dashed #666">Tracejada</option>
-                        </select>
+                    <div class="form-row mb-2">
+                        <div class="col-6">
+                            <label class="small" for="prop-margem-superior">Margem superior (px)</label>
+                            <input type="number" id="prop-margem-superior" class="form-control form-control-sm" min="0">
+                        </div>
+                        <div class="col-6">
+                            <label class="small" for="prop-margem-inferior">Margem inferior (px)</label>
+                            <input type="number" id="prop-margem-inferior" class="form-control form-control-sm" min="0">
+                        </div>
+                    </div>
+                    <div class="form-row mb-2">
+                        <div class="col-12">
+                            <label class="small" for="prop-borda">Borda</label>
+                            <select id="prop-borda" class="custom-select custom-select-sm">
+                                <option value="1px dashed rgba(0, 0, 0, 0)">Nenhuma</option>
+                                <option value="1px solid rgb(0, 0, 0)">Sólida fina</option>
+                                <option value="1px dashed rgb(102, 102, 102)">Tracejada</option>
+                            </select>
+                        </div>
                     </div>
                     <button type="button" class="btn btn-danger btn-sm btn-block mt-4" id="btn-deletar-elemento">Remover elemento</button>
                 </div>

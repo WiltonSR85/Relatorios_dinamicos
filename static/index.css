@@ -44,6 +44,14 @@ body {
     height: 70%;
 }
 
+.pagina-a4 main > .elemento-relatorio {
+    position: static !important;
+}
+
+.pagina-a4 .elemento-relatorio {
+    padding: 0;
+}
+
 .pagina-a4 header {
     border-bottom: 1px solid #d3c1c1cc;
 }
@@ -105,8 +113,7 @@ body {
 
 /* Conteúdos internos */
 
-.el-texto {
-    padding: 5px;
+.pagina-a4 p, h1, h2 {
     white-space: pre-wrap;
     word-wrap: break-word;
 }

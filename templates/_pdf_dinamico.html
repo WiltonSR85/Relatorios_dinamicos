@@ -13,8 +13,7 @@
             background-color: #f8f9f1; 
         }
 
-        * { 
-            margin: 0 !important; 
+        * {
             padding: 0; 
         }
 
@@ -41,6 +40,15 @@
 
         header > .elemento-relatorio, footer > .elemento-relatorio { 
             position: absolute; 
+        }
+
+        main > .elemento-relatorio {
+            position: static !important;
+        }
+
+        p, h1, h2 {
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
 
         table, th, td { 
