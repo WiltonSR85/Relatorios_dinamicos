@@ -11,10 +11,6 @@ body {
     z-index: 10;
 }
 
-.area-canvas {
-    overflow: auto;
-}
-
 /* Folha A4 */
 .pagina-a4 {
     display: flex;
@@ -150,4 +146,10 @@ table, th, td {
 
 .logo-pdf {
     max-height: 65px;
+}
+
+@media (max-width: 990px) {
+    .area-canvas {
+        overflow: auto;
+    }
 }

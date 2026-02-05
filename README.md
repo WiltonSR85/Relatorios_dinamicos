@@ -11,7 +11,8 @@ Este projeto é um editor de relatórios que permite adicionar e mover elementos
 - WeasyPrint (biblioteca Python para gerar PDF a partir de HTML/CSS)
 - Docker & Docker Compose (para execução containerizada)
 - Bootstrap 4.6
-- Interact.js (para arrastar e soltar elementos na interface)
+- [Interact.js](https://github.com/taye/interact.js) (para arrastar e soltar elementos dentro da área do relátorio)
+- [SortableJS](https://github.com/SortableJS/Sortable) (também fornece funcionalidades de arrastar e soltar; foi usado para permitir reordenar a ordem dos cabeçalhos das tabelas no formulário)
 - BeautifulSoup (manipulação de HTML no backend)
 - [nh3](https://github.com/messense/nh3) (para sanitização de HTML no backend)
 
@@ -47,3 +48,10 @@ A aplicação estará disponível em: **http://localhost:8001**
 4. Clique em "Visualizar relatório"
 
 ---
+
+## Imagens
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/d53d89c1-528a-4dbd-9e3b-a45da3480886" />
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/0d293912-24f2-4af8-859b-5fe04b2747fa" />
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/1ce9c655-8440-4ff7-9fd6-dd5615b6d576" />
+
+

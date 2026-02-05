@@ -74,13 +74,9 @@ export function tornarElementoInterativo(el){
     const objetoInteract = interact(el);
     const tipo = el.dataset.tipo;
     
-    if(el.parentElement.id === "main"){
-        if (tipo !== 'imagem'){
-            tornarElementoRedimencionavel(objetoInteract, {
-                right: false, left: false, top: true, bottom: true
-            });
-        }
-    } else {
+    /* se o elemento for adicionado à região principal do relatório, ele não 
+    será arrastável porque o PDF gerado não refletia corretamente suas posições, poderá apenas ser redimensionado */
+    if(el.parentElement.id !== "main"){
         tornarElementoArrastavel(objetoInteract);
     }
 
@@ -88,7 +84,7 @@ export function tornarElementoInterativo(el){
         tornarElementoRedimencionavel(objetoInteract, {
             right: true, left: true, top: false, bottom: false
         });
-        tornarComponentesDaTabelasRedimensionaveis(el);
+        tornarComponentesDaTabelaRedimensionaveis(el);
     } else if (tipo !== 'imagem'){
         tornarElementoRedimencionavel(objetoInteract);
     }
@@ -157,7 +153,8 @@ export function criarImagem(src){
     return el;
 }
 
-export function tornarComponentesDaTabelasRedimensionaveis(elementoTabela){
+export function tornarComponentesDaTabelaRedimensionaveis(elementoTabela){
+    /* Permite redimensionar os cabeçalhos da tabela */
     const cabeçalhos = elementoTabela.querySelectorAll('thead tr > th');
     
     cabeçalhos.forEach((elemento) => {
