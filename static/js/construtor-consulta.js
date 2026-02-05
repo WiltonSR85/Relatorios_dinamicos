@@ -1,4 +1,4 @@
-import { getElementoSelecionado, atualizarPainelPropriedades, tornarComponentesDaTabelasRedimensionaveis } from './canvas.js';
+import { getElementoSelecionado, atualizarPainelPropriedades, tornarComponentesDaTabelaRedimensionaveis } from './canvas.js';
 
 /** Várias das funções seguintes possuem comportamentos comuns.
  * Algumas delas adicionam ou removem elementos do estadoGlobal e
@@ -121,7 +121,7 @@ function inserirCabecalhosNaTabela(elementoSelecionado, cabeçalhos){
         });
     }
 
-    tornarComponentesDaTabelasRedimensionaveis(elementoSelecionado);
+    tornarComponentesDaTabelaRedimensionaveis(elementoSelecionado);
 }
 
 export function redefinirConstrutorConsulta() {
@@ -261,7 +261,7 @@ export function removerColuna(index) {
         return;
     }
 
-    const nomeCampo = `${colunaRemovida.campo}__${sufixo}`
+    const nomeCampo = colunaRemovida.campo;
 
     estadoGlobal.filtros = estadoGlobal.filtros.filter(filtro => {
         if ((filtro.agregacao || filtro.truncamento)) {
@@ -289,11 +289,6 @@ export function adicionarFiltro() {
     
     const agregacao = campoEntradaNomeCampo.selectedOptions[0].dataset.agregacao;
     const truncamento = campoEntradaNomeCampo.selectedOptions[0].dataset.truncamento;
-    
-    const sufixo = agregacao || truncamento;
-    if(sufixo){
-        nomeCampo = nomeCampo.replace(`__${sufixo}`, "");
-    }
 
     const tab = estadoGlobal.tabelas[indiceTabela];
     estadoGlobal.filtros.push({
@@ -326,11 +321,6 @@ export function adicionarOrdenacao() {
 
     const agregacao = campoEntradaNomeCampo.selectedOptions[0].dataset.agregacao;
     const truncamento = campoEntradaNomeCampo.selectedOptions[0].dataset.truncamento;
-
-    const sufixo = agregacao || truncamento;
-    if(sufixo){
-        nomeCampo = nomeCampo.replace(`__${sufixo}`, "");
-    }
 
     const tab = estadoGlobal.tabelas[indiceTabela];
     estadoGlobal.ordenacoes.push({
@@ -398,7 +388,7 @@ export function atualizarSelectCampos(tabelaIdx, idSelectAlvo, idBtn) {
 
     /* a partir daqui, são adicionadas ao campo de seleção as opções relacionadas a agregação ou truncamento*/
 
-    let tab_caminho = tab.caminho.replace(/__$/, ""); // remove o '__' final
+    let tab_caminho = tab.caminho.replace(/__$/, ""); // remove o '__' final; 'base__' torna-se 'base'
 
     const colunasAgregacao = estadoGlobal.colunas.filter(c => {
         if(!(c.agregacao))
@@ -437,8 +427,6 @@ export function atualizarSelectCampos(tabelaIdx, idSelectAlvo, idBtn) {
     function criarElementoOpcao(container, campo, rotulo, tipo, nomePropriedade, valorPropriedade){
         const opt = document.createElement('option');
         let nomeCampo = campo.split("__").at(-1); // pega apenas o nome do campo
-        let sufixo = valorPropriedade;
-        nomeCampo = nomeCampo + "__" + sufixo; // adiciona o nome da função ao nome do campo, por ex., "id__count"
         opt.value = nomeCampo;
         opt.text = rotulo;
         opt.dataset.tipo = tipo;
@@ -610,7 +598,23 @@ export function renderizarColunas() {
                 </button>`;
             container.appendChild(div);
         });
+        
+        permitirReordenamentoColunas(container);
     }
+}
+
+function permitirReordenamentoColunas(containerColunas){
+    new Sortable(containerColunas, {
+        animation: 150,
+        ghostClass: 'blue-background-class',
+        onEnd: function(evento){
+            /* reflete a alteração da ordem das colunas na configuração da consulta */
+            const posicaoAnterior = evento.oldIndex;
+            const novaPosicao = evento.newIndex;
+            const coluna = estadoGlobal.colunas.splice(posicaoAnterior, 1)[0];
+            estadoGlobal.colunas.splice(novaPosicao, 0, coluna);
+        }
+    });
 }
 
 export function renderizarFiltros() {
@@ -695,6 +699,11 @@ export function gerarCargaUtil()
 }
 
 export function renderizarJson() {
+    /* Exibe o objeto que representa a configuração da consulta */
     const cargaUtil = gerarCargaUtil();
-    document.getElementById('saida-json').textContent = JSON.stringify(cargaUtil, null, 4);
+    const saidaJSON = document.getElementById('saida-json');
+    
+    if(saidaJSON){
+        saidaJSON.textContent = JSON.stringify(cargaUtil, null, 4);
+    }
 }
