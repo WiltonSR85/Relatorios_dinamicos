@@ -50,4 +50,8 @@ A aplicação estará disponível em: **http://localhost:8001**
 ---
 
 ## Imagens
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/d53d89c1-528a-4dbd-9e3b-a45da3480886" />
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/0d293912-24f2-4af8-859b-5fe04b2747fa" />
+<img width="1366" height="768" alt="image" src="https://github.com/user-attachments/assets/1ce9c655-8440-4ff7-9fd6-dd5615b6d576" />
+
 
