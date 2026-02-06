@@ -2,6 +2,10 @@
 
 Este projeto é um editor de relatórios que permite adicionar e mover elementos (texto/tabelas) no conteúdo e gerar PDF  via WeasyPrint.
 
+Além do código da aplicação, este repositório possui alguns apps e models de exemplo para permitir demonstrar a funcionalidade do editor. Esta aplicação pode ser usada em qualquer projeto Django, sendo necessário apenas adaptar o código do arquivo `setup/esquema.py` para refletir o esquema do banco de dados.
+
+Observação: Por causa de algumas discrepâncias entre as posições dos elementos no editor e a renderização do PDF, a manipulação dos elementos na área principal do relatório é um pouco limitada.
+
 ---
 
 ## Tecnologias e ferramentas usadas
