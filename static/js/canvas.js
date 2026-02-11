@@ -65,7 +65,7 @@ export function criarElementoRelatorio(tipo, x, y, container, dadosAdicionais = 
     el.dataset.x = 0; 
     el.dataset.y = 0;
 
-    if(container.id == "main"){
+    if(container.id == "main" && tipo != 'imagem'){
         el.style.width = window.getComputedStyle(container).width;
     }
 

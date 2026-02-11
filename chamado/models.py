@@ -68,7 +68,7 @@ class Chamado(models.Model):
         return self.tramite_chamado.order_by('criado_em').last()
 
     def __str__(self):
-        return f"Chamado {self.id} em {self.criado_em.strftime('%d/%m/%Y às %H:%M:%S')}"
+        return f"Chamado {self.id} da {self.base} em {self.criado_em.strftime('%d/%m/%Y às %H:%M:%S')}"
 
 
 class TramiteChamado(models.Model):
