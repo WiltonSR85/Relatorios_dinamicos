@@ -12,7 +12,7 @@
             <div class="col">
                 <h1 class="text-center my-5">Modelos de relatório salvos</h1>
                 <div class="d-flex justify-content-center">
-                    <table class="table table-sm text-center w-50">
+                    <table class="table table-sm text-center">
                         <thead>
                             <tr>
                                 <th>Nome</th>
@@ -26,7 +26,7 @@
                                     <td>{{ relatorio.nome }}</td>
                                     <td>{{ relatorio.criado_em|date:"d/M/Y" }}</td>
                                     <td>
-                                        <a class="btn btn-primary" href="{% url "editar_relatorio" id=relatorio.id %}">Editar</a>
+                                        <a class="btn btn-primary mb-1" href="{% url "editar_relatorio" id=relatorio.id %}">Editar</a>
                                         <a class="btn btn-danger" href="{% url "excluir_relatorio" id=relatorio.id %}">Excluir</a>
                                     </td>
                                 </tr>

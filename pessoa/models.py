@@ -17,7 +17,7 @@ class Pessoa(models.Model):
         verbose_name='CPF',
         max_length=14, # 14 dígitos (com pontuação)
         null=True,
-        blank=False, # Campo obrigatório em formulários
+        blank=True, # Campo obrigatório em formulários
         unique=True, # Garante que não haverá CPFs duplicados
     )    
 
@@ -62,14 +62,13 @@ class Pessoa(models.Model):
     deficienciaIntelectual = models.BooleanField("Deficiência intelectual",default=False)
 
     observacoes = models.TextField(null=True, blank=True)
-    criado_por = models.ForeignKey(User, related_name='pessoas_criadas', on_delete=models.SET_NULL, null=True,
-                                   blank=True)
+    criado_por = models.ForeignKey(User, related_name='pessoas_criadas', on_delete=models.SET_NULL, null=True, blank=True)
     criado_em = models.DateTimeField(auto_now_add=True)
     base_cadastro = models.ForeignKey(Base, verbose_name="Base", on_delete=models.SET_NULL, null=True, blank=True, related_name='base_pessoa')
     criado_em = models.DateTimeField(verbose_name="Criado em", auto_now_add=True, blank=True)
 
     def __str__(self):
-        return f"{self.nome} - {self.nome}"
+        return f"{self.nome} - {self.dataNascimentoReal.strftime('%d-%m-%Y')}"
 
     class Meta:
 

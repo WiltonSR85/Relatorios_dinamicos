@@ -85,7 +85,7 @@ def salvar_relatorio(request):
             status=400
         )
 
-    tags = {"div", "h1", "h2", "img", "table", "thead", "tbody", "tr", "th", "td", "header", "main", "footer"}
+    tags = {"div", "h1", "h2", "img", "table", "thead", "tbody", "tr", "th", "td", "header", "main", "footer", "p"}
     atributos = {"class", "id", "style", "data-config-consulta", "data-x", "data-y", "data-tipo", "src"}
     tags_e_atributos = {}
 

@@ -358,10 +358,10 @@ class ConstrutorConsulta:
                     valor = valor.strftime("%d/%m/%Y") if hasattr(valor, 'strftime') else valor
                 elif item_mapa['tipo'] == 'datetime' and valor:
                     valor = valor.strftime("%d/%m/%Y %H:%M") if hasattr(valor, 'strftime') else valor
-                """ elif item_mapa['tipo'] == 'month' and valor:
+                elif item_mapa['tipo'] == 'month' and valor:
                     valor = valor = valor.strftime("%B/%Y") if hasattr(valor, 'strftime') else valor
                 elif item_mapa['tipo'] == 'year' and valor:
-                    valor = valor = valor.strftime("%Y") if hasattr(valor, 'strftime') else valor """
+                    valor = valor = valor.strftime("%Y") if hasattr(valor, 'strftime') else valor
 
                 nova_linha[item_mapa['rotulo']] = valor
 
