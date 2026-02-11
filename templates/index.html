@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gerador de relatório</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
     <link rel="stylesheet" href="{% static 'index.css' %}">
 </head>
 
@@ -14,17 +14,17 @@
     {% csrf_token %}
     <nav class="navbar navbar-dark bg-dark shadow-sm">
         <span class="navbar-brand mb-0 h1">
-            <i class="bi bi-file-earmark-pdf-fill"></i> Gerador de relatórios
+            <i class="mdi mdi-file-chart"></i> Gerador de relatórios
         </span>
         <div class="d-flex">
             <button type="button" class="btn btn-outline-light btn-sm mr-2" id="btn-abrir-editor">
-                <i class="bi bi-pen"></i> Editor
+                <i class="mdi mdi-file-edit-outline"></i> Editor
             </button>
             <button type="button" class="btn btn-outline-light btn-sm mr-2" id="btn-salvar-modelo" data-toggle="modal" data-target="#salvarModeloRelatorio">
-                <i class="bi bi-save"></i> Salvar modelo
+                <i class="mdi mdi-content-save-outline"></i> Salvar modelo
             </button>
             <button type="button" class="btn btn-primary btn-sm" id="btn-gerar-relatorio">
-                <i class="bi bi-printer"></i> Visualizar relatório
+                <i class="mdi mdi-printer-outline"></i> Visualizar relatório
             </button>
         </div>
     </nav>
@@ -33,10 +33,10 @@
         <div class="row">
             <div class="col-12 col-lg-2 barra-lateral p-3">
                 <div class="h6 text-muted font-weight-bold text-uppercase small mb-3 border-bottom pb-2">Componentes</div>
-                <div class="item-arrastavel" draggable="true" data-tipo="h1"><i class="bi bi-type-h1 text-success"></i> Título 1</div>
-                <div class="item-arrastavel" draggable="true" data-tipo="h2"><i class="bi bi-type-h2 text-success"></i> Título 2</div>
-                <div class="item-arrastavel" draggable="true" data-tipo="texto"><i class="bi bi-fonts text-primary"></i> Texto livre</div>
-                <div class="item-arrastavel" draggable="true" data-tipo="tabela"><i class="bi bi-table text-success"></i> Tabela de dados</div>
+                <div class="item-arrastavel" draggable="true" data-tipo="h1"><i class="mdi mdi-format-header-1 text-success"></i> Título 1</div>
+                <div class="item-arrastavel" draggable="true" data-tipo="h2"><i class="mdi mdi-format-header-2 text-success"></i> Título 2</div>
+                <div class="item-arrastavel" draggable="true" data-tipo="texto"><i class="mdi mdi-format-text text-success"></i> Texto livre</div>
+                <div class="item-arrastavel" draggable="true" data-tipo="tabela"><i class="mdi mdi-table text-success"></i> Tabela de dados</div>
 
                 <div>
                     <div class="text-muted font-weight-bold text-uppercase small mb-2">Imagens</div>
@@ -48,7 +48,7 @@
                     </div>
                 </div>
 
-                <div class="alert alert-info small mt-4"><i class="bi bi-info-circle">
+                <div class="alert alert-info small mt-4"><i class="mdi mdi-information-outline">
                     </i> Arraste um componente para o papel ao lado.
                 </div>
             </div>
@@ -70,7 +70,7 @@
                 <div class="h6 text-muted font-weight-bold text-uppercase small mb-3 border-bottom pb-2">Propriedades</div>
 
                 <div id="propriedades-vazio" class="text-center text-muted py-5">
-                    <i class="bi bi-cursor mb-2" style="font-size: 2rem;"></i>
+                    <i class="mdi mdi-cursor-default-outline mb-2" style="font-size: 2rem;"></i>
                     <p class="small">Selecione um elemento.</p>
                 </div>
 
@@ -78,10 +78,10 @@
                     
                     <div id="grupo-prop-tabela" class="d-none mb-3 border rounded p-2 bg-light">
                         <div class="small font-weight-bold text-success mb-2">
-                            <i class="bi bi-database"></i> Dados da tabela
+                            <i class="mdi mdi-database"></i> Dados da tabela
                         </div>
                         <button type="button" class="btn btn-success btn-sm btn-block" id="btn-configurar-consulta">
-                            <i class="bi bi-gear-fill"></i> Configurar consulta
+                            <i class="mdi mdi-cog"></i> Configurar consulta
                         </button>
                     </div>
 
@@ -104,16 +104,16 @@
                         <span class="small d-block mb-2">Alinhamento</span>
                         <div class="btn-group w-100" role="group" aria-label="Alinhamento de texto" id="prop-botoes-alinhamento">
                             <button type="button" class="btn btn-outline-secondary btn-sm btn-align" data-align="left" title="Esquerda" aria-label="Alinhar à esquerda">
-                                <i class="bi bi-text-left"></i>
+                                <i class="mdi mdi-format-align-left"></i>
                             </button>
                             <button type="button" class="btn btn-outline-secondary btn-sm btn-align" data-align="center" title="Centro" aria-label="Alinhar ao centro">
-                                <i class="bi bi-text-center"></i>
+                                <i class="mdi mdi-format-align-center"></i>
                             </button>
                             <button type="button" class="btn btn-outline-secondary btn-sm btn-align" data-align="right" title="Direita" aria-label="Alinhar à direita">
-                                <i class="bi bi-text-right"></i>
+                                <i class="mdi mdi-format-align-right"></i>
                             </button>
                             <button type="button" class="btn btn-outline-secondary btn-sm btn-align" data-align="justify" title="Justificado" aria-label="Alinhar justificado">
-                                <i class="bi bi-justify"></i>
+                                <i class="mdi mdi-format-align-justify"></i>
                             </button>
                         </div>
                     </div>
@@ -171,7 +171,7 @@
         <div class="modal-dialog modal-xl-customizado">
             <div class="modal-content">
                 <div class="modal-header bg-dark text-white">
-                    <div class="h5 modal-title"><i class="bi bi-diagram-3-fill">
+                    <div class="h5 modal-title"><i class="mdi mdi mdi-sitemap">
                         </i> Construtor de consulta
                     </div>
                     <button type="button" class="close text-white" data-dismiss="modal" aria-label="Fechar">
@@ -185,7 +185,7 @@
 
                                 <div class="card shadow-sm mb-4">
                                     <div class="card-header bg-primary text-white">
-                                        <i class="bi bi-database-fill-gear"></i> 1. Mapeamento de tabelas (junções)
+                                        <i class="mdi mdi mdi-database-settings"></i> 1. Mapeamento de tabelas (junções)
                                     </div>
                                     <div class="card-body">
                                         <div class="form-group row mb-3">
@@ -209,7 +209,7 @@
                                     <div class="col-lg-12 px-0 mb-4">
                                         <div class="card shadow-sm h-100 border-success">
                                             <div class="card-header bg-white text-success">
-                                                <i class="bi bi-table"></i> 2. Colunas
+                                                <i class="mdi mdi mdi-table"></i> 2. Colunas
                                             </div>
                                             <div class="card-body">
                                                 <div class="form-row align-items-end mb-3">
@@ -224,7 +224,21 @@
                                                         </select>
                                                     </div>
                                                     <div class="col-md-2" id="container-col-agregacao">
-                                                        <label class="small font-weight-bold text-muted" for="select-col-agregacao">Função de agregação</label>
+                                                        <div class="mb-2">
+                                                            <label class="small font-weight-bold text-muted mb-0" for="select-col-agregacao">Função de agregação</label>
+                                                            <button type="button" class="btn p-0" aria-label="Ajuda" data-toggle="popover" 
+                                                            data-html="true" data-trigger="focus" data-content="
+                                                                <p>As funções de agregação são usadas para calcular um único valor a partir de um conjunto de dados. Elas são úteis para resumir informações, como calcular médias, totais ou contagens.</p>
+                                                                    <ul>
+                                                                        <li><span class='font-weight-bold'>Contagem</span>: conta o número de registros.</li>
+                                                                        <li><span class='font-weight-bold'>Soma</span>: soma todos os valores de uma coluna.</li>
+                                                                        <li><span class='font-weight-bold'>Média</span>: calcula a média dos valores de uma coluna.</li>
+                                                                        <li><span class='font-weight-bold'>Mínimo</span>: retorna o menor valor em uma coluna.</li>
+                                                                        <li><span class='font-weight-bold'>Máximo</span>: retorna o maior valor em uma coluna.</li>
+                                                                    </ul>">
+                                                                <i class="mdi mdi-help-circle-outline"></i>
+                                                            </button>
+                                                        </div>
                                                         <select class="custom-select" id="select-col-agregacao">
                                                             <option value="">Nenhuma</option>
                                                             <option value="count">Contagem</option>
@@ -236,7 +250,21 @@
                                                     </div>
 
                                                     <div class="col-md-2 d-none" id="container-col-truncamento">
-                                                        <label class="small font-weight-bold text-muted" for="select-col-truncamento">Função de truncamento</label>
+                                                        <div class="mb-2">
+                                                            <label class="small font-weight-bold text-muted mb-0" for="select-col-truncamento">Função de truncamento</label>
+                                                            <button type="button" class="btn p-0" aria-label="Ajuda" data-toggle="popover" 
+                                                            data-html="true" data-trigger="focus" data-content="
+                                                                <p>As funções de truncamento permitem reduzir a precisão dos dados de data e hora, ajustando-os para um nível específico, como dia ou mês.</p>
+                                                                    <ul>
+                                                                        <li><span class='font-weight-bold'>Dia</span>: remove a parte da hora, mantendo apenas o dia.</li>
+                                                                        <li><span class='font-weight-bold'>Mês</span>: ajusta a data para o primeiro dia do mês, ignorando o dia e a hora.</li>
+                                                                        <li><span class='font-weight-bold'>Ano</span>: ajusta a data para o primeiro dia do ano, ignorando o mês e o dia.</li>
+                                                                    </ul>
+                                                                    <p>Essas funções são úteis para agrupar e analisar dados por períodos específicos.</p>">
+                                                                <i class="mdi mdi-help-circle-outline"></i>
+                                                            </button>
+                                                        </div>
+
                                                         <select class="custom-select" id="select-col-truncamento">
                                                             <option value="">Nenhuma</option>
                                                             <option value="truncday">Dia</option>
@@ -267,7 +295,7 @@
                                     <div class="col-lg-12 px-0 mb-4">
                                         <div class="card shadow-sm h-100 border-warning">
                                             <div class="card-header bg-white text-warning">
-                                                <i class="bi bi-funnel-fill text-warning"></i> 3. Filtros
+                                                <i class="mdi mdi-filter text-warning"></i> 3. Filtros
                                             </div>
                                             <div class="card-body">
                                                 <div class="form-row align-items-end mb-3">
@@ -322,7 +350,7 @@
                                     <div class="col-lg-12 px-0 mb-4">
                                         <div class="card shadow-sm h-100 border-info">
                                             <div class="card-header bg-white text-info">
-                                                <i class="bi bi-sort-alpha-down text-info"></i> 4. Ordenações
+                                                <i class="mdi mdi-sort text-info"></i> 4. Ordenações
                                             </div>
                                             <div class="card-body">
                                                 <div class="form-row align-items-end mb-3">
@@ -370,7 +398,7 @@
                                     <div class="col-lg-12 px-0 mb-4">
                                         <div class="card shadow-sm h-100 border-dark">
                                             <div class="card-header bg-white text-dark">
-                                                <i class="bi bi-sort-down text-dark"></i> 5. Limite
+                                                <i class="mdi mdi-sort text-dark"></i> 5. Limite
                                             </div>
                                             <div class="card-body">
                                                 <div class="form-group row mb-3">
@@ -411,7 +439,7 @@
                 <div class="modal-footer bg-white">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
                     <button type="button" class="btn btn-primary" id="btn-salvar-config-tabela">
-                        <i class="bi bi-check-circle"></i> Salvar configuração
+                        <i class="mdi mdi-check-circle-outline"></i> Salvar configuração
                     </button>
                 </div>
             </div>

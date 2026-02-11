@@ -1,4 +1,4 @@
-import { criarElementoRelatorio, selecionarElemento, desselecionarTudo, deletarElementoSelecionado, inicializarOuvintesPropriedades, tornarComponentesDaTabelaRedimensionaveis, tornarElementoInterativo } from './canvas.js';
+import { criarElementoRelatorio, selecionarElemento, desselecionarTudo, deletarElementoSelecionado, inicializarOuvintesPropriedades, tornarCabecalhosDaTabelaRedimensionaveis, tornarElementoInterativo } from './canvas.js';
 import { tornarElementoArrastavel, tornarElementoRedimencionavel, tornarElementoManipulavel } from './interact-config.js';
 import * as CC from './construtor-consulta.js';
 import { fontes, tiposDeDadosEntrada, formatarSQL } from './uteis.js';
@@ -154,6 +154,9 @@ tornarElementoManipulavel(areaManipulavel, paginaCanvas);
 
 carregarFontes();
 
+$(function () {
+  $('[data-toggle="popover"]').popover()
+})
 
 function carregarFontes(){
     const selectFontes = document.getElementById('prop-fonte-familia');

@@ -1,4 +1,4 @@
-import { getElementoSelecionado, atualizarPainelPropriedades, tornarComponentesDaTabelaRedimensionaveis } from './canvas.js';
+import { getElementoSelecionado, atualizarPainelPropriedades, tornarCabecalhosDaTabelaRedimensionaveis } from './canvas.js';
 
 /** Várias das funções seguintes possuem comportamentos comuns.
  * Algumas delas adicionam ou removem elementos do estadoGlobal e
@@ -121,7 +121,7 @@ function inserirCabecalhosNaTabela(elementoSelecionado, cabeçalhos){
         });
     }
 
-    tornarComponentesDaTabelaRedimensionaveis(elementoSelecionado);
+    tornarCabecalhosDaTabelaRedimensionaveis(elementoSelecionado);
 }
 
 export function redefinirConstrutorConsulta() {
@@ -496,7 +496,7 @@ export function renderizarEstruturaTabelas() {
             <div>
                 <span class="badge badge-primary mr-2">${tab.tipo}</span>
                 <span class="font-weight-bold">${tab.nome_amigavel}</span>
-                    ${tab.caminho ? `<small class="text-muted ml-2">(via <code>${tab.caminho.slice(0, -2)}</code>)</small>` : ''}
+                    ${tab.caminho ? `<small class="text-muted ml-2">(via <code style="word-break: break-all;">${tab.caminho.slice(0, -2)}</code>)</small>` : ''}
                 </div>
         `;
 
@@ -508,7 +508,7 @@ export function renderizarEstruturaTabelas() {
             btnRmvTab.ariaLabel = "Remover tabela";
             btnRmvTab.dataset.tabCaminho = tab.caminho;
             btnRmvTab.innerHTML = `
-                <i class="bi bi-x-square-fill" aria-hidden="true"></i>
+                <i class="mdi mdi-close-box" aria-hidden="true"></i>
             `;
             div.appendChild(btnRmvTab);
         }
@@ -580,21 +580,21 @@ export function renderizarColunas() {
 
         estadoGlobal.colunas.forEach((col, idx) => {
             const bgClass = col.agregacao ? 'badge-warning text-dark' : 'badge-primary text-white';
-            const iconClass = col.agregacao ? 'bi-calculator' : 'bi-check';
+            const iconClass = col.agregacao ? 'mdi-calculator' : 'mdi-check';
 
             const div = document.createElement('div');
             div.className = "border rounded p-2 d-flex align-items-center bg-light shadow-sm mr-2 mb-2";
 
             div.innerHTML = `
                 <div class="badge-circle mr-2 ${bgClass}">
-                    <i class="bi ${iconClass}"></i>
+                    <i class="mdi ${iconClass}"></i>
                 </div>
                 <div class="d-flex flex-column mr-3">
                     <span class="font-weight-bold small">${col.rotulo}</span>
                     <span class="text-muted" style="font-size:0.7rem;">${col.tabela_origem}</span>
                 </div>
-                <button class="btn btn-link text-danger p-0 btn-remover-col" data-idx="${idx}" aria-label="Apagar">
-                    <i class="bi bi-x-circle-fill" aria-hidden="true"></i>
+                <button class="btn btn-link text-danger p-1 btn-remover-col" data-idx="${idx}" aria-label="Remover">
+                    <i class="mdi mdi-close-circle" aria-hidden="true"></i>
                 </button>`;
             container.appendChild(div);
         });
@@ -635,13 +635,13 @@ export function renderizarFiltros() {
             sufixo = sufixo ? `__${sufixo}` : "";
             tr.innerHTML = `
                 <td class="text-primary">
-                    <code>${filtro.campo}${sufixo}</code>
+                    <code style="word-break: break-all;">${filtro.campo}${sufixo}</code>
                 </td>
                 <td>${filtro.operador}</td>
                 <td>${filtro.valor}</td>
                 <td class="text-right">
-                    <button class="btn btn-link text-danger p-0 btn-remover-filtro" data-idx="${idx}" aria-label="Apagar">
-                        <i class="bi bi-trash" aria-hidden="true"></i>
+                    <button class="btn btn-link text-danger p-1 btn-remover-filtro" data-idx="${idx}" aria-label="Remover">
+                        <i class="mdi mdi-trash-can-outline" aria-hidden="true"></i>
                     </button>
                 </td>`;
             tbody.appendChild(tr);
@@ -667,12 +667,12 @@ export function renderizarOrdenacoes(){
             sufixo = sufixo ? `__${sufixo}` : "";
             tr.innerHTML = `
                 <td class="text-primary">
-                    <code>${ordenacao.campo}${sufixo}</code>
+                    <code style="word-break: break-all;">${ordenacao.campo}${sufixo}</code>
                 </td>
                 <td>${ordenacao.ordem == 'ASC' ? 'Crescente': 'Decrescente'}</td>
                 <td class="text-right">
-                    <button type="button" class="btn btn-link text-danger p-0 btn-remover-ordenacao" data-idx="${idx}" aria-label="Apagar">
-                        <i class="bi bi-trash" aria-hidden="true"></i>
+                    <button type="button" class="btn btn-link text-danger p-1 btn-remover-ordenacao" data-idx="${idx}" aria-label="Remover">
+                        <i class="mdi mdi-trash-can-outline" aria-hidden="true"></i>
                     </button>
                 </td>`;
             tbody.appendChild(tr);
