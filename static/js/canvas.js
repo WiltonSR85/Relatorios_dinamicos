@@ -65,6 +65,10 @@ export function criarElementoRelatorio(tipo, x, y, container, dadosAdicionais = 
     el.dataset.x = 0; 
     el.dataset.y = 0;
 
+    if(container.id == "main"){
+        el.style.width = window.getComputedStyle(container).width;
+    }
+
     container.appendChild(el);
     tornarElementoInterativo(el);
     selecionarElemento(el);
@@ -84,7 +88,7 @@ export function tornarElementoInterativo(el){
         tornarElementoRedimencionavel(objetoInteract, {
             right: true, left: true, top: false, bottom: false
         });
-        tornarComponentesDaTabelaRedimensionaveis(el);
+        tornarCabecalhosDaTabelaRedimensionaveis(el);
     } else if (tipo !== 'imagem'){
         tornarElementoRedimencionavel(objetoInteract);
     }
@@ -92,7 +96,6 @@ export function tornarElementoInterativo(el){
 function criarTexto(){
     const el = document.createElement('p');
     el.innerText = 'Texto editável';
-    el.style.width = '600px';
     el.style.height = '50px';
     el.style.padding = '0';
     el.style.textAlign = 'center';
@@ -103,7 +106,6 @@ function criarTexto(){
 function criarH1(){
     const el = document.createElement('h1');
     el.innerText = 'Título 1';
-    el.style.width = '600px';
     el.style.height = '50px';
     el.style.textAlign = 'center';
 
@@ -113,7 +115,6 @@ function criarH1(){
 function criarH2(){
     const el = document.createElement('h2');
     el.innerText = 'Título 2';
-    el.style.width = '600px';
     el.style.height = '50px';
     el.style.textAlign = 'center';
 
@@ -123,7 +124,6 @@ function criarH2(){
 function criarTabela(){
     const el = document.createElement('table');
     el.classList.add('table', 'table-sm');
-    el.style.width = '600px';
     el.innerHTML = `
         <thead>
             <tr>
@@ -153,7 +153,7 @@ export function criarImagem(src){
     return el;
 }
 
-export function tornarComponentesDaTabelaRedimensionaveis(elementoTabela){
+export function tornarCabecalhosDaTabelaRedimensionaveis(elementoTabela){
     /* Permite redimensionar os cabeçalhos da tabela */
     const cabeçalhos = elementoTabela.querySelectorAll('thead tr > th');
     
