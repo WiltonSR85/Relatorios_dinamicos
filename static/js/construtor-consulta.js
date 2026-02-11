@@ -569,13 +569,16 @@ export function atualizarOpcoesSelect(idSelect) {
 export function renderizarColunas() {
     const container = document.getElementById('lista-colunas-selecionadas');
     const msg = document.getElementById('msg-sem-colunas');
+    const msgInfo = document.getElementById('msg-info-colunas');
     container.innerHTML = '';
 
     if (estadoGlobal.colunas.length === 0) {
         msg.classList.remove('d-none');
+        msgInfo.classList.add('d-none');
         container.classList.add('d-none');
     } else {
         msg.classList.add('d-none');
+        msgInfo.classList.remove('d-none');
         container.classList.remove('d-none');
 
         estadoGlobal.colunas.forEach((col, idx) => {
@@ -599,11 +602,7 @@ export function renderizarColunas() {
             container.appendChild(div);
 
         });
-        const p = document.createElement('p');
-        p.classList = "small text-muted text-center w-100 my-2";
-        p.innerHTML = '<i class="mdi mdi-information-outline"></i>Arreste as colunas para reordená-las';
-        container.appendChild(p);
-        
+                
         permitirReordenamentoColunas(container);
     }
 }

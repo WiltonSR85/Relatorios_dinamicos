@@ -35,8 +35,8 @@
                 <div class="h6 text-muted font-weight-bold text-uppercase small mb-3 border-bottom pb-2">Componentes</div>
                 <div class="item-arrastavel" draggable="true" data-tipo="h1"><i class="mdi mdi-format-header-1 text-success"></i> Título 1</div>
                 <div class="item-arrastavel" draggable="true" data-tipo="h2"><i class="mdi mdi-format-header-2 text-success"></i> Título 2</div>
-                <div class="item-arrastavel" draggable="true" data-tipo="texto"><i class="mdi mdi-format-text text-success"></i> Texto livre</div>
-                <div class="item-arrastavel" draggable="true" data-tipo="tabela"><i class="mdi mdi-table text-success"></i> Tabela de dados</div>
+                <div class="item-arrastavel" draggable="true" data-tipo="texto"><i class="mdi mdi-format-text text-success"></i> Texto</div>
+                <div class="item-arrastavel" draggable="true" data-tipo="tabela"><i class="mdi mdi-table text-success"></i> Tabela</div>
 
                 <div>
                     <div class="text-muted font-weight-bold text-uppercase small mb-2">Imagens</div>
@@ -142,13 +142,9 @@
                         </div>
                     </div>
                     <div class="form-row mb-2">
-                        <div class="col-6">
+                        <div class="col-12">
                             <label class="small" for="prop-margem-superior">Margem superior (px)</label>
                             <input type="number" id="prop-margem-superior" class="form-control form-control-sm" min="0">
-                        </div>
-                        <div class="col-6">
-                            <label class="small" for="prop-margem-inferior">Margem inferior (px)</label>
-                            <input type="number" id="prop-margem-inferior" class="form-control form-control-sm" min="0">
                         </div>
                     </div>
                     <div class="form-row mb-2">
@@ -283,6 +279,11 @@
                                                 </div>
 
                                                 <div id="lista-colunas-selecionadas" class="d-flex flex-wrap mt-3">
+                                                </div>
+
+                                                <div class="text-muted small text-center d-none w-100" id="msg-info-colunas">
+                                                    <i class="mdi mdi-information-outline"></i>
+                                                    Arreste as colunas para reordená-las.
                                                 </div>
 
                                                 <div id="msg-sem-colunas" class="text-muted small w-100 text-center py-3 border border-dashed">
