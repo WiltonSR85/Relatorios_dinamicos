@@ -597,7 +597,12 @@ export function renderizarColunas() {
                     <i class="mdi mdi-close-circle" aria-hidden="true"></i>
                 </button>`;
             container.appendChild(div);
+
         });
+        const p = document.createElement('p');
+        p.classList = "small text-muted text-center w-100 my-2";
+        p.innerHTML = '<i class="mdi mdi-information-outline"></i>Arreste as colunas para reordená-las';
+        container.appendChild(p);
         
         permitirReordenamentoColunas(container);
     }
