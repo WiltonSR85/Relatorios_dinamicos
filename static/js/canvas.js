@@ -14,7 +14,6 @@ const props = {
     borda: document.getElementById('prop-borda'),
     alinhamento: document.querySelectorAll('#prop-botoes-alinhamento > button'),
     margemSuperior: document.getElementById('prop-margem-superior'),
-    margemInferior: document.getElementById('prop-margem-inferior'),
 };
 
 export function getElementoSelecionado() {
@@ -61,7 +60,7 @@ export function criarElementoRelatorio(tipo, x, y, container, dadosAdicionais = 
     el.style.left = `${x}px`; 
     el.style.top = `${y}px`;
     el.style.marginTop = '16px';
-    el.style.marginBottom = '16px';
+    el.style.marginBottom = '0';
     el.dataset.x = 0; 
     el.dataset.y = 0;
 
@@ -214,7 +213,6 @@ export function atualizarPainelPropriedades() {
     props.fonte.value = elementoSelecionado.style.fontFamily ?  elementoSelecionado.style.fontFamily : fontes[0].valor;
     props.cor.value = estilo.color;
     props.borda.value = estilo.border;    
-    props.margemInferior.value = parseInt(estilo.marginBottom);
     props.margemSuperior.value = parseInt(estilo.marginTop);
 }
 
@@ -266,10 +264,5 @@ export function inicializarOuvintesPropriedades() {
     props.margemSuperior.addEventListener('input', (e) => { 
         if (elementoSelecionado) 
             elementoSelecionado.style.marginTop = e.target.value + 'px'; 
-    });
-
-    props.margemInferior.addEventListener('input', (e) => { 
-        if (elementoSelecionado) 
-            elementoSelecionado.style.marginBottom = e.target.value + 'px'; 
     });
 }
