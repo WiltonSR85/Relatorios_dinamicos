@@ -617,6 +617,7 @@ function permitirReordenamentoColunas(containerColunas){
             const novaPosicao = evento.newIndex;
             const coluna = estadoGlobal.colunas.splice(posicaoAnterior, 1)[0];
             estadoGlobal.colunas.splice(novaPosicao, 0, coluna);
+            renderizarColunas(); // renderiza as colunas para refletir a mudança nos atributos 'data-idx'
         }
     });
 }
