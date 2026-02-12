@@ -105,6 +105,19 @@ class ValidadorConsulta:
         return nome_funcao
 
     
+    def _obter_tipo_exibicao(self, nome_funcao):
+        """ Determina o tipo de exibição com base na função aplicada, para formatação visual correta. """
+        if nome_funcao in FUNCOES_DE_AGREGACAO:
+            return 'number' # funções de agregação sempre retornam números
+        elif nome_funcao in FUNCOES_DE_TRUNCAMENTO_DATA:
+            if nome_funcao.endswith("month"):
+                return 'month'
+            elif nome_funcao.endswith("year"):
+                return 'year'
+            else:
+                return 'date'
+
+
     def _criar_apelido_campo(self, campo, nome_funcao=None):
         """Cria um apelido único para o campo, considerando agregações e truncamentos"""
         apelido = campo.replace('__', '_')
@@ -113,6 +126,27 @@ class ValidadorConsulta:
             apelido = f"{apelido}_{nome_funcao}"
         
         return apelido
+
+
+    def _processar_tipos_exibicao_colunas(self, colunas):
+        """Processa e define o tipo de exibição para cada coluna"""
+        for coluna in colunas:
+            nome_funcao = coluna.get('agregacao') or coluna.get('truncamento')
+            
+            if nome_funcao:
+                coluna['tipo_exibicao'] = self._obter_tipo_exibicao(nome_funcao)
+
+
+    def _processar_valores_filtros(self, filtros):
+        """Processa e normaliza os valores dos filtros"""
+        for filtro in filtros:
+            tipo_campo = filtro['tipo']
+            valor = filtro['valor']
+            
+            if tipo_campo == 'bool':
+                valor = bool(valor)
+
+            filtro['valor'] = valor
 
 
     def _validar_limite(self, limite):
@@ -155,6 +189,11 @@ class ValidadorConsulta:
             nome_funcao = self._validar_funcao(nome_funcao, campo, tipo)
             elemento['apelido'] = self._criar_apelido_campo(campo, nome_funcao) # armazena o apelido do campo
 
+        # tratamento específico para colunas
+        self._processar_tipos_exibicao_colunas(colunas)
+        # tratamento específico para filtros
+        self._processar_valores_filtros(filtros)
+
         limite = configuracao_consulta.get('limite')
         configuracao_consulta['limite'] = self._validar_limite(limite)
 
@@ -176,37 +215,6 @@ class ConstrutorConsulta:
         self._mapa_saida = [] # para formatar o resultado final e manter a ordem
 
 
-    def _processar_agregacao(self, caminho_orm, nome_funcao, rotulo, apelido, metricas):
-        """Processa uma coluna com função de agregação"""
-        func_agregacao = FUNCOES_DE_AGREGACAO[nome_funcao]
-        metricas[apelido] = func_agregacao(caminho_orm, distinct=True)
-        
-        self._mapa_saida.append({
-            'chave_db': apelido,
-            'rotulo': rotulo,
-            'tipo': 'number'
-        })
-
-
-    def _processar_truncamento(self, caminho_orm, nome_funcao, rotulo, apelido, campos_truncados):
-        """Processa uma coluna com truncamento de data"""
-        func_truncamento = FUNCOES_DE_TRUNCAMENTO_DATA[nome_funcao]
-        campos_truncados[apelido] = func_truncamento(caminho_orm) 
-        
-        if nome_funcao.endswith("month"):
-            tipo_exibicao = 'month'
-        elif nome_funcao.endswith("year"):
-            tipo_exibicao = 'year'
-        else:
-            tipo_exibicao = 'date'
-
-        self._mapa_saida.append({
-            'chave_db': apelido,
-            'rotulo': rotulo,
-            'tipo': tipo_exibicao
-        })
-
-
     def _processar_colunas(self):
         """Processa as colunas da configuração"""
         campos_truncados = {} # para campos com truncamento de data (.annotate)
@@ -216,23 +224,33 @@ class ConstrutorConsulta:
 
         for coluna in colunas:
             caminho_orm = coluna['campo']
-            tipo_campo = coluna['tipo']
+            tipo = coluna['tipo']
             rotulo = coluna.get('rotulo', coluna['campo'])
             nome_func_agregacao = coluna.get('agregacao')
             nome_func_truncamento = coluna.get('truncamento')
             apelido = coluna.get('apelido')
             
             if nome_func_agregacao:
-                self._processar_agregacao(caminho_orm, nome_func_agregacao, rotulo, apelido, metricas)
+                func_agregacao = FUNCOES_DE_AGREGACAO[nome_func_agregacao]
+                metricas[apelido] = func_agregacao(caminho_orm, distinct=True)
+                tipo = coluna['tipo_exibicao']
+                chave_db = apelido
+
             elif nome_func_truncamento:
-                self._processar_truncamento(caminho_orm, nome_func_truncamento, rotulo, apelido, campos_truncados)
+                func_truncamento = FUNCOES_DE_TRUNCAMENTO_DATA[nome_func_truncamento]
+                campos_truncados[apelido] = func_truncamento(caminho_orm)
+                tipo = coluna['tipo_exibicao']
+                chave_db = apelido
+
             else:
                 campos.append(caminho_orm)
-                self._mapa_saida.append({
-                    'chave_db': caminho_orm,
-                    'rotulo': rotulo,
-                    'tipo': tipo_campo
-                })
+                chave_db = caminho_orm
+                
+            self._mapa_saida.append({
+                'chave_db': chave_db,
+                'rotulo': rotulo,
+                'tipo': tipo
+            })
         
         return campos_truncados, campos, metricas
 
@@ -246,11 +264,6 @@ class ConstrutorConsulta:
             campo = filtro['campo']
             sufixo_operador = filtro['operador']
             valor = filtro['valor']
-            tipo_campo = filtro['tipo']
-
-            # tratamento de tipos específicos
-            if tipo_campo == 'bool':
-                valor = bool(valor)
 
             func_agregacao = filtro.get('agregacao')
             
@@ -359,9 +372,9 @@ class ConstrutorConsulta:
                 elif item_mapa['tipo'] == 'datetime' and valor:
                     valor = valor.strftime("%d/%m/%Y %H:%M") if hasattr(valor, 'strftime') else valor
                 elif item_mapa['tipo'] == 'month' and valor:
-                    valor = valor = valor.strftime("%B/%Y") if hasattr(valor, 'strftime') else valor
+                    valor = valor.strftime("%m/%Y") if hasattr(valor, 'strftime') else valor
                 elif item_mapa['tipo'] == 'year' and valor:
-                    valor = valor = valor.strftime("%Y") if hasattr(valor, 'strftime') else valor
+                    valor = valor.strftime("%Y") if hasattr(valor, 'strftime') else valor
 
                 nova_linha[item_mapa['rotulo']] = valor
 
