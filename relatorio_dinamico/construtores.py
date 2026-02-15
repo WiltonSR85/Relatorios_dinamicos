@@ -232,7 +232,13 @@ class ConstrutorConsulta:
             
             if nome_func_agregacao:
                 func_agregacao = FUNCOES_DE_AGREGACAO[nome_func_agregacao]
-                metricas[apelido] = func_agregacao(caminho_orm, distinct=True)
+                
+                if nome_func_agregacao in ['min', 'max']:
+                    # as funções Min e Max não recebem o argumento 'distinct'
+                    metricas[apelido] = func_agregacao(caminho_orm)
+                else: 
+                    metricas[apelido] = func_agregacao(caminho_orm, distinct=True)
+                
                 tipo = coluna['tipo_exibicao']
                 chave_db = apelido
 
