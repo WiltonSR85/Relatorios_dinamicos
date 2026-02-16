@@ -394,60 +394,58 @@ class ConstrutorHTML:
         """ Classe para construir o HTML final do relatório dinâmico.
         :param esquema_bd: Dicionário representando o esquema do BD
         :param html_inicial: HTML parcial contendo os componentes do documento, incluindo as tabelas a serem preenchidas
-        :param caminho_template: Caminho do template base do relatório
+        :param caminho_template: Caminho do template base do relatório, dentro do qual o HTML parcial será inserido
         """
         self._esquema_bd = esquema_bd
-        self._html_inicial = html_inicial
-        self._caminho_template = caminho_template
+        template = render_to_string(caminho_template)
+        self._html = BeautifulSoup(template, 'html.parser')
+        html_inicial = BeautifulSoup(html_inicial, 'html.parser')
+        # insere o HTML parcial dentro do corpo do template base
+        self._html.body.append(html_inicial)
+
 
     def gerar_html(self):
-        template = render_to_string(self._caminho_template)
-        estrutura_html = BeautifulSoup(template, 'html.parser')
-        body = estrutura_html.find('body')
-        html_preenchido = self._inserir_dados_no_html()
-        body.append(html_preenchido)
+        self._inserir_dados_no_html()
 
-        return str(estrutura_html)
+        return str(self._html)
 
     def _inserir_dados_no_html(self):
-        conteudo_html = BeautifulSoup(self._html_inicial, 'html.parser')
-        tabelas = conteudo_html.find_all(attrs={'data-config-consulta': True})
+        # encontra todas as tabelas que possuem o atributo data-config-consulta, que indica que devem ser preenchidas dinamicamente
+        tabelas = self._html.find_all(attrs={'data-config-consulta': True})
         validador_consulta = ValidadorConsulta(self._esquema_bd)
 
         for tab in tabelas:
+            # extrai a configuração de consulta do atributo data-config-consulta, que é uma string JSON
             dados_consulta_str = tab['data-config-consulta']
             dados_consulta = json.loads(dados_consulta_str)
-            # retorna lista de dicts: [{'Nome': 'João', 'Idade': 30}, ...]
+            # valida a consulta e obtém a configuração pronta para execução
             config_consulta_valida = validador_consulta.validar(dados_consulta)
             construtor_consulta = ConstrutorConsulta(config_consulta_valida)
+            # retorna uma lista de dicionários: [{'Nome': 'João', 'Idade': 30}, ...]
             dados = construtor_consulta.executar()
             
             if dados:
-                self._preencher_tabela(tab, dados, conteudo_html)
+                self._preencher_tabela(tab, dados)
 
             # remove o atributo de dados para limpar o HTML final
             del tab['data-config-consulta']
 
-        return conteudo_html
 
-    def _preencher_tabela(self, tabela, lista_dados, conteudo_html):
+    def _preencher_tabela(self, tabela, lista_dados):
         cabecalhos = lista_dados[0].keys()
-        tr = tabela.thead.tr
-        ths = tr.find_all('th')
+        ths = tabela.find_all('th')
         
         for th, cabecalho in zip(ths, cabecalhos):
             th.string = cabecalho
 
         tbody = tabela.tbody
-        estilo_tr = tbody.tr['style'] if 'style' in tbody.tr.attrs else ''
-
         tbody.clear()
+
         for linha in lista_dados:
-            linha_tabela = conteudo_html.new_tag('tr')
-            linha_tabela['style'] = estilo_tr
+            linha_tabela = self._html.new_tag('tr')
             
             for valor in linha.values():
-                td = conteudo_html.new_tag('td')
+                td = self._html.new_tag('td')
                 td.string = str(valor) if valor is not None else "-"
                 linha_tabela.append(td)
 
