@@ -1,10 +1,10 @@
 # Relatórios dinâmicos
 
-Este projeto é um editor de relatórios que permite adicionar e mover elementos (texto/tabelas) no conteúdo e gerar PDF  via WeasyPrint.
+Este projeto é um editor de relatórios que permite adicionar e mover elementos (texto/tabelas) para a área do relatório e gerar um PDF a partir dele via WeasyPrint.
 
 Além do código da aplicação, este repositório possui alguns apps e models de exemplo para permitir demonstrar a funcionalidade do editor. Esta aplicação pode ser usada em qualquer projeto Django, sendo necessário apenas adaptar o código do arquivo `setup/esquema.py` para refletir o esquema do banco de dados.
 
-Observação: Por causa de algumas discrepâncias entre as posições dos elementos no editor e a renderização do PDF, a manipulação dos elementos na área principal do relatório é um pouco limitada.
+Observação: Por causa de diferenças entre as posições dos elementos no editor e no PDF gerado, não é possível mudar as posições dos elementos na área principal do relatório uma vez que eles tenham sido adicionados, apenas é possível redimensioná-los à esquerda e à direita.
 
 ---
 
