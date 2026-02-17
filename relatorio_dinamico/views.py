@@ -38,8 +38,7 @@ def gerar_sql(request):
         validador_consulta = ValidadorConsulta(esquema_bd)
         config_consulta_valida = validador_consulta.validar(configuracao_consulta)
         construtor_consulta = ConstrutorConsulta(config_consulta_valida)
-        queryset = construtor_consulta.criar_queryset()
-        sql = str(queryset.query)
+        sql = construtor_consulta.get_sql()
         return JsonResponse({'sql': sql})
 
     except (FieldError, ValidationError, ValueError) as e:

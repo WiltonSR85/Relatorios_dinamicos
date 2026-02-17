@@ -7,6 +7,7 @@ import operator
 import json
 from bs4 import BeautifulSoup
 from django.template.loader import render_to_string
+import re
 
 FUNCOES_DE_AGREGACAO = {
     'count': Count,
@@ -357,18 +358,59 @@ class ConstrutorConsulta:
 
         return queryset
 
+    
+    def _verificar_somente_agregacao(self):
+        """Verifica se a consulta contém apenas colunas com funções de agregação. 
+        Se a consulta tiver apenas funções de agregação, será necessário usar o método .aggregate() no lugar de .annotate()
+        """
+        colunas = self.configuracao_consulta.get('colunas', [])
+        
+        for coluna in colunas:
+            if not coluna.get('agregacao'):
+                return False
+        
+        return True
+
+    def get_sql(self):
+        """Retorna a string SQL da consulta construída"""
+        tem_somente_agregacao = self._verificar_somente_agregacao()
+        queryset = self.criar_queryset()
+
+        if tem_somente_agregacao:
+            # o método .aggregate() que será usado neste caso não retorna um QuerySet; uma alternativa é utilizar um queryset com annotate() e pegar o código SQL, removendo o GROUP BY desnecessário e tudo o que vier a partir dele usando regex
+
+            sql = str(queryset.query)
+            sql_limpa = re.sub(r'GROUP BY.*', '', sql, flags=re.IGNORECASE | re.DOTALL).strip()
+            
+            return sql_limpa
+        
+        else:
+            return str(queryset.query)
 
     def executar(self):
         """
         Executa a consulta no banco de dados e formata o resultado.
         """
-        queryset = self.criar_queryset()
+        tem_somente_agregacao = self._verificar_somente_agregacao()
+
+        if tem_somente_agregacao:
+            queryset = self.modelo_classe.objects.all()
+            _, _, metricas = self._processar_colunas()
+            filtros = self._construir_filtros()
+
+            if filtros:
+                queryset = queryset.filter(reduce(operator.and_, filtros))
+            
+            dados = [queryset.aggregate(**metricas)]
+        else: 
+            dados = self.criar_queryset()
+        
         dados_formatados = []
 
-        for linha in queryset:
+        for dado in dados:
             nova_linha = {}
             for item_mapa in self._mapa_saida:
-                valor = linha.get(item_mapa['chave_db'])
+                valor = dado.get(item_mapa['chave_db'])
                 
                 # formatações visuais
                 if item_mapa['tipo'] == 'bool':
