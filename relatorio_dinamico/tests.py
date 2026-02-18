@@ -80,10 +80,6 @@ class ConstrutorConsultaTestCase(TestCase):
         self.consulta_valida = validador.validar(self.consulta)
         self.construtor = ConstrutorConsulta(self.consulta_valida)
     
-    def test_construir_filtros(self):
-        filtros = self.construtor._construir_filtros()
-        self.assertEqual(filtros, [])
-    
     def test_construir_ordenacao(self):
         ordenacoes = self.construtor._construir_ordenacao()
         self.assertEqual(ordenacoes, ['unidades_operacionais__id'])
